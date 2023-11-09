@@ -49,9 +49,9 @@ def parse_and_save_to_json(xml_file, json_file, progress_file, parsed_files, pat
         gc.collect()
         
         # Export articles to JSON as separate objects within an array
-        with open(json_file, 'a') as json_file:
+        with open(json_file, 'a+') as json_file:
             for article in articles_list:
-                if articles_list.index(article) > 0:
+                if json_file.tell() > 2:
                     json_file.write(',\n')  # Add a comma and a new line for all but the first article
                 json.dump(article, json_file, indent=4)
 
@@ -100,6 +100,11 @@ if __name__ == "__main__":
     
     # Init lists
     parsed_files = []
+    
+    # writing array to json 
+
+    with open(json_file_path, 'w') as json_file:
+        json_file.write('[\n')
 
     try:
         with open(progress_file, 'r+') as progress:
@@ -131,5 +136,8 @@ if __name__ == "__main__":
                 future.result()
             except Exception as e:
                 logging.error(f"Child process excpetion: {str(e)}")
+
+    with open(json_file_path, 'a') as json_file:
+        json_file.write('\n]')
 
     print(f"Saved articles to {json_file_path}")
