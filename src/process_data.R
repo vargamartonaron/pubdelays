@@ -31,7 +31,7 @@ covid_synonyms <- c('covid',
 
 covid_pattern <- paste0("\\b(?:", paste(covid_synonyms, collapse = "|"), ")\\b")
 
-replication_synonyms <- c('replication, replicating, replication of, replication study')
+replication_synonyms <- c('replication', 'replicating', 'replication of', 'replication study')
 
 replication_pattern <- paste0("\\b(?:", paste(replication_synonyms, collapse = "|"), ")\\b")
 
