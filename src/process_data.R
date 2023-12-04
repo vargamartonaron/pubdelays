@@ -2,7 +2,7 @@ setwd("~/pubdelays")
 library(groundhog)
 # using groundhog for the sake of reproducibility, info at https://groundhogr.com/
 
-packages <- c("tidyverse", "jsonlite", "fuzzyjoin")
+packages <- c("dplyr", "jsonlite", "fuzzyjoin", "tidyr", "readr", "lubridate", "stringr")
 
 groundhog.library(packages, "2023-12-03")
 
