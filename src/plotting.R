@@ -5,7 +5,7 @@ library(dplyr)
 library(tidyr)
 setwd('~/pubdelays')
 
-articles <- readr::read_tsv('/home/martonaronvarga/GitHub/ppk_expcourse/journal_articles.tsv')
+articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
 
 acceptance_data <- articles |>
   dplyr::group_by(article_date) |>
