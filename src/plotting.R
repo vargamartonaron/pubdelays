@@ -5,16 +5,15 @@ library(dplyr)
 library(tidyr)
 setwd('~/pubdelays')
 
-articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
+articles <- readr::read_tsv('/home/martonaronvarga/GitHub/ppk_expcourse/journal_articles.tsv')
 
 acceptance_data <- articles |>
   dplyr::group_by(article_date) |>
-  dplyr::filter(lubridate::year(article_date) > 2016) |>
-  dplyr::reframe(date=article_date,
-                   delay=median(acceptance_delay, na.rm=T))
+  dplyr::filter(lubridate::year(article_date) >= 2016) |>
+  dplyr::reframe(delay=median(acceptance_delay, na.rm=T))
 
   
-acceptance_plot <- ggplot(acceptance_data, aes(x = date, y = delay, group = 1)) +
+acceptance_plot <- ggplot(acceptance_data, aes(x = article_date, y = delay, group = 1)) +
   #geom_smooth(method = "loess", se = TRUE, span = 1, color = "black", linewidth = 1.2) +
   geom_point(alpha = 1/ 2000) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y')
