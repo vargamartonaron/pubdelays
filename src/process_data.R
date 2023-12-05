@@ -8,10 +8,10 @@ groundhog.library(packages, "2023-12-02")
 
 # import json and csv data
 
-articles <- jsonlite::fromJSON("/home/martonaronvarga/Downloads/pubmed_medline_articles.json")
+articles <- jsonlite::fromJSON("/users/usumusu/pubmed_medline_articles.json")
 print(nrow(articles))
 print("JSON parsed into dataframe.")
-scimago <- readr::read_csv("/home/martonaronvarga/GitHub/pubdelays/Data/scimagojr_2022.csv")
+scimago <- readr::read_csv("/users/usumusu/scimagojr_2022.csv")
 print("Journal data parsed into dataframe.")
 
 covid_synonyms <- c('covid',
