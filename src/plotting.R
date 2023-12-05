@@ -22,7 +22,7 @@ acceptance_plot <- ggplot(acceptance_data, aes(x = article_date, y = delay)) +
         axis.text.y = element_text(size = 16, family = "Times"),
         axis.title = element_text(size = 22, family = "Times")) +
   theme_apa() + 
-  ylim(0, 2000)
+  ylim(0, 300)
 
   ggsave('acceptance_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 100)
   
