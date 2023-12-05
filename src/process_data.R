@@ -8,9 +8,10 @@ groundhog.library(packages, "2023-12-02")
 
 # import json and csv data
 
-articles <- jsonlite::fromJSON("/users/usumusu/pubmed_medline_articles.json")
+articles <- jsonlite::fromJSON("/home/martonaronvarga/Downloads/pubmed_medline_articles.json")
+print(nrow(articles))
 print("JSON parsed into dataframe.")
-scimago <- readr::read_csv("/users/usumusu/scimagojr_2022.csv")
+scimago <- readr::read_csv("/home/martonaronvarga/GitHub/pubdelays/Data/scimagojr_2022.csv")
 print("Journal data parsed into dataframe.")
 
 covid_synonyms <- c('covid',
@@ -39,9 +40,9 @@ replication_pattern <- paste0("\\b(?:", paste(replication_synonyms, collapse = "
 
 articles <- articles |>
   tidyr::unnest(history) |>
-  dplyr::mutate(keywords = str_replace_all(keywords, ";", ",")) |>
+  dplyr::mutate(keywords = stringr::str_replace_all(keywords, ";", ",")) |>
   dplyr::mutate(
-    publication_types = stringr::str_extract_all(publication_types, "(?<=:)[^;]+") |> 
+      publication_types = stringr::str_extract_all(publication_types, "(?<=:)[^;]+") |> 
       # concatenate types with commas
       lapply(function(x) paste(x, collapse = ", ")) |>
       unlist()
@@ -57,15 +58,15 @@ articles <- articles |>
   dplyr::mutate(acceptance_delay = as.numeric(difftime(accepted, received, units = "days"))) |>
   dplyr::mutate(publication_delay = as.numeric(dplyr::if_else(!is.na(article_date), difftime(article_date, accepted, units = "days"), difftime(pubdate, accepted, units = "days")))) |>
   dplyr::filter((acceptance_delay > 0 & publication_delay > 0) | (acceptance_delay > 0 & is.na(publication_delay)) | (is.na(acceptance_delay) & publication_delay > 0) | (is.na(acceptance_delay) & is.na(publication_delay))) |>
-  dplyr::mutate(is_covid = dplyr::if_else((stringr::str_detect(title, regex(covid_pattern, ignore_case = TRUE)) | stringr::str_detect(keywords, regex(covid_pattern, ignore_case = TRUE))), TRUE, FALSE)) |>
-  dplyr::mutate(is_replication = dplyr::if_else((stringr::str_detect(title, regex(replication_pattern, ignore_case = TRUE)) | stringr::str_detect(keywords, regex(replication_pattern, ignore_case = TRUE))), TRUE, FALSE)) |>
+  dplyr::mutate(is_covid = dplyr::if_else((stringr::str_detect(title, stringr::regex(covid_pattern, ignore_case = TRUE)) | stringr::str_detect(keywords, stringr::regex(covid_pattern, ignore_case = TRUE))), TRUE, FALSE)) |>
+  dplyr::mutate(is_replication = dplyr::if_else((stringr::str_detect(title, stringr::regex(replication_pattern, ignore_case = TRUE)) | stringr::str_detect(keywords, stringr::regex(replication_pattern, ignore_case = TRUE))), TRUE, FALSE)) #|>
   dplyr::select(-`pmc-release`, -retracted, -aheadofprint, -ecollection)
 
 print("Articles processed.")
 
 scimago <- scimago |>
   dplyr::rowwise() |>
-  dplyr::mutate(areas = paste(dplyr::c_across(tidyselect::starts_with("Areas"))[!is.na(c_across(starts_with("Areas")))], collapse=", ")) |>
+  dplyr::mutate(areas = paste(dplyr::c_across(tidyselect::starts_with("Areas"))[!is.na(dplyr::c_across(tidyselect::starts_with("Areas")))], collapse=", ")) |>
   dplyr::ungroup() |>
   dplyr::select(-Sourceid, -Type, -Areas_1, -Areas_2, -Areas_3, -Areas_4, -Areas_5, -Region, -Publisher, -`Total Docs.`, -`Ref. / Doc.`, -`Total Docs. (3years)`) |>
   dplyr::rename(journal_title = Title)
@@ -77,8 +78,9 @@ joined <- scimago |>
   dplyr::select(-Issn, -journal)
 
 print("Joined dataframes.")
+print(nrow(joined))
 
 names(joined) <- gsub(" ", "_", tolower(names(joined)))
 
-print("Writing to csv.")
+print("Writing to tsv.")
 readr::write_tsv(joined, "journal_articles.tsv")
