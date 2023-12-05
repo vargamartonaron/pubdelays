@@ -59,7 +59,7 @@ articles <- articles |>
   dplyr::mutate(publication_delay = as.numeric(dplyr::if_else(!is.na(article_date), difftime(article_date, accepted, units = "days"), difftime(pubdate, accepted, units = "days")))) |>
   dplyr::filter((acceptance_delay > 0 & publication_delay > 0) | (acceptance_delay > 0 & is.na(publication_delay)) | (is.na(acceptance_delay) & publication_delay > 0) | (is.na(acceptance_delay) & is.na(publication_delay))) |>
   dplyr::mutate(is_covid = dplyr::if_else((stringr::str_detect(title, stringr::regex(covid_pattern, ignore_case = TRUE)) | stringr::str_detect(keywords, stringr::regex(covid_pattern, ignore_case = TRUE))), TRUE, FALSE)) |>
-  dplyr::mutate(is_replication = dplyr::if_else((stringr::str_detect(title, stringr::regex(replication_pattern, ignore_case = TRUE)) | stringr::str_detect(keywords, stringr::regex(replication_pattern, ignore_case = TRUE))), TRUE, FALSE)) #|>
+  dplyr::mutate(is_replication = dplyr::if_else((stringr::str_detect(title, stringr::regex(replication_pattern, ignore_case = TRUE)) | stringr::str_detect(keywords, stringr::regex(replication_pattern, ignore_case = TRUE))), TRUE, FALSE)) |>
   dplyr::select(-`pmc-release`, -retracted, -aheadofprint, -ecollection)
 
 print("Articles processed.")
