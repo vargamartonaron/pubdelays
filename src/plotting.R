@@ -14,8 +14,8 @@ acceptance_data <- articles |>
   
 
 acceptance_plot <- ggplot(acceptance_data, aes(x = plotyear, y = acceptance_delay, group = 1)) +
-  geom_smooth(method = "loess", se = TRUE, span = 1, color = "black", linewidth = 1.2) +
-  geom_point(alpha = 1/ 20) +
+  #geom_smooth(method = "loess", se = TRUE, span = 1, color = "black", linewidth = 1.2) +
+  geom_point(alpha = 1/ 10) +
   labs(y = "Acceptance delay (days)", x = "Year") +
   theme_apa() +
   theme(axis.text.x = element_text(size = 16, family = "Times", hjust = 1),
