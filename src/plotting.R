@@ -23,4 +23,4 @@ acceptance_plot <- ggplot(acceptance_data, aes(x = plotdate, y = acceptance_dela
         axis.title = element_text(size = 22, family = "Times")) +
   ylim(0, 200)
 
-
+  ggsave('acceptance_plot.png', width = 7, height = 7, scale = 0.9)
