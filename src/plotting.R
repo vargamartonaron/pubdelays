@@ -62,7 +62,7 @@ publication_data <- articles |>
   dplyr::group_by(article_date) |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   dplyr::reframe(delay=median(publication_delay, na.rm=T)) |>
-  dplyr::drop_na(delay)
+  tidyr::drop_na(delay)
 
 publication_plot <- ggplot(publication_data, aes(x = article_date, y = delay)) +
   geom_point(alpha = 1/5) +
