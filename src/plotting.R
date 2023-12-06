@@ -41,7 +41,7 @@ covid_acceptance_data <- articles |>
   dplyr::reframe(delay = median(acceptance_delay, na.rm = TRUE)) |>
   tidyr::drop_na(delay)
   
-covid_acceptance_plot <- ggplot(covid_acceptance_data, aes(x = article_date, y = delay, color = factor(is_covid))) +
+covid_acceptance_plot <- ggplot(covid_acceptance_data, aes(x = article_date, y = delay, color = is_covid)) +
   geom_point(alpha = 1/5) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", color = "Covid cikkek", title = "Elfogadási késés") +
@@ -79,7 +79,7 @@ covid_publication_data <- articles |>
   dplyr::reframe(delay = median(publication_delay, na.rm = TRUE)) |>
   tidyr::drop_na(delay)
 
-covid_publication_plot <- ggplot(covid_publication_data, aes(x = article_date, y = delay, color = factor(is_covid))) +
+covid_publication_plot <- ggplot(covid_publication_data, aes(x = article_date, y = delay, color = is_covid)) +
   geom_point(alpha = 1/5) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", color = "Covid cikkek", title = "Publikációs késés") +
