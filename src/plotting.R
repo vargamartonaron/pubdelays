@@ -87,7 +87,7 @@ covid_publication_data <- articles |>
 
 covid_publication_plot <- ggplot(covid_publication_data, aes(x = article_date)) +
   geom_point(alpha = 0.5, aes(y = non_covid_delay, color = "Covid")) +
-  geom_pint(aplha = 0.5, aes(y = covid_delay, color = "Nem Covid"))
+  geom_point(aplha = 0.5, aes(y = covid_delay, color = "Nem Covid"))
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", color = "Covid cikkek", title = "Publikációs késés") +
   theme(axis.text.x = element_text(size = 16, family = "Times", hjust = 1),
