@@ -14,12 +14,13 @@ setwd('~/pubdelays')
 #loadfonts()
 
 
-articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
+#articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
+articles <- read_tsv('/home/martonaronvarga/GitHub/ppk_expcourse/journal_articles.tsv')
 
 acceptance_data <- articles |>
   dplyr::group_by(article_date) |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
-  dplyr::reframe(delay=median(acceptance_delay, na.rm=T)) |>
+  dplyr::reframe(delay = median(acceptance_delay, na.rm=T)) |>
   tidyr::drop_na(delay)
 
   
@@ -33,24 +34,26 @@ acceptance_plot <- ggplot(acceptance_data, aes(x = article_date, y = delay)) +
   theme_apa() + 
   ylim(0, 300)
 
-  ggsave('acceptance_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
+ggsave('acceptance_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
   
 covid_acceptance_data <- articles |>
-  dplyr::group_by(article_date, is_covid) |>
+  dplyr::group_by(article_date) |>
+  dplyr::reframe(non_covid_delay = median(acceptance_delay[is_covid], na.rm = TRUE),
+                 covid_delay = median(acceptance_delay[!is_covid], na.rm = TRUE)) |>
   dplyr::filter(lubridate::year(article_date) >= 2019 & lubridate::year(article_date) <= 2022) |>
-  dplyr::reframe(delay = median(acceptance_delay, na.rm = TRUE)) |>
   tidyr::drop_na(delay)
   
-covid_acceptance_plot <- ggplot(covid_acceptance_data, aes(x = article_date, y = delay, color = is_covid)) +
-  geom_point(alpha = 1/5) +
+covid_acceptance_plot <- ggplot(covid_acceptance_data, aes(x = article_date)) +
+  geom_point(alpha = 0.5, aes(y = non_covid_delay, color = "Covid")) +
+  geom_pint(aplha = 0.5, aes(y = covid_delay, color = "Nem Covid"))
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
-  labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", color = "Covid cikkek", title = "Elfogadási késés") +
+  labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", color = "Cikkek tematikája", title = "Elfogadási késés") +
   theme(axis.text.x = element_text(size = 16, family = "Times", hjust = 1),
         axis.text.y = element_text(size = 16, family = "Times"),
         axis.title = element_text(size = 22, family = "Times")) +
   theme_apa() + 
   ylim(0, 300) +
-  scale_color_viridis(option = "plasma")
+  scale_color_manual(values = c("Covid" = viridis_pal(option = "plasma")(2)[2], "Nem Covid" = viridis_pal(option = "plasma")(2)[1]))
 
 ggsave('covid_acceptance_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
 
@@ -74,13 +77,15 @@ ggsave('publication_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
 
 
 covid_publication_data <- articles |>
-  dplyr::group_by(article_date, is_covid) |>
+  dplyr::group_by(article_date) |>
+  dplyr::reframe(covid_delay = median(publication_delay[is_covid], na.rm = TRUE),
+                 non_covid_delay = median(publication_delay[!is_covid], na.rm = TRUE)) |>
   dplyr::filter(lubridate::year(article_date) >= 2019 & lubridate::year(article_date) <= 2022) |>
-  dplyr::reframe(delay = median(publication_delay, na.rm = TRUE)) |>
   tidyr::drop_na(delay)
 
-covid_publication_plot <- ggplot(covid_publication_data, aes(x = article_date, y = delay, color = is_covid)) +
-  geom_point(alpha = 1/5) +
+covid_publication_plot <- ggplot(covid_publication_data, aes(x = article_date)) +
+  geom_point(alpha = 0.5, aes(y = non_covid_delay, color = "Covid")) +
+  geom_pint(aplha = 0.5, aes(y = covid_delay, color = "Nem Covid"))
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", color = "Covid cikkek", title = "Publikációs késés") +
   theme(axis.text.x = element_text(size = 16, family = "Times", hjust = 1),
@@ -88,7 +93,8 @@ covid_publication_plot <- ggplot(covid_publication_data, aes(x = article_date, y
         axis.title = element_text(size = 22, family = "Times")) +
   theme_apa() + 
   ylim(0, 300) +
-  scale_color_viridis(option = "plasma")
+  scale_color_manual(values = c("Covid" = viridis_pal(option = "plasma")(2)[2], "Nem Covid" = viridis_pal(option = "plasma")(2)[1]))
+  
 
 ggsave('covid_publication_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
 
