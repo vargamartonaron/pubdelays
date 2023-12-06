@@ -46,7 +46,7 @@ covid_acceptance_data <- articles |>
   
 covid_acceptance_plot <- ggplot(covid_acceptance_data, aes(x = article_date)) +
   geom_point(alpha = 0.5, aes(y = non_covid_delay, color = "Covid")) +
-  geom_point(alpha = 0.5, aes(y = covid_delay, color = "Nem Covid"))
+  geom_point(alpha = 0.5, aes(y = covid_delay, color = "Nem Covid")) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", color = "Cikkek tematikája", title = "Elfogadási késés") +
   theme(axis.text.x = element_text(size = 16, family = "Times", hjust = 1),
