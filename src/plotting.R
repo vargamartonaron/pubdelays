@@ -9,7 +9,7 @@ library(ggridges)
 library(geomorph)
 
 setwd('~/pubdelays')
-extrafont::font_import(paths='~/.fonts', prompt = FALSE)
+extrafont::font_import(paths='~/times.ttf', prompt = FALSE)
 loadfonts()
 
 
