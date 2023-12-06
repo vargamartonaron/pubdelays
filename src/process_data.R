@@ -68,7 +68,7 @@ scimago <- scimago |>
   dplyr::rowwise() |>
   dplyr::mutate(areas = paste(dplyr::c_across(tidyselect::starts_with("Areas"))[!is.na(dplyr::c_across(tidyselect::starts_with("Areas")))], collapse=", ")) |>
   dplyr::ungroup() |>
-  dplyr::select(-Sourceid, -Type, -Areas_1, -Areas_2, -Areas_3, -Areas_4, -Areas_5, -Region, -Publisher, -`Total Docs.`, -`Ref. / Doc.`, -`Total Docs. (3years)`) |>
+  dplyr::select(-Sourceid, -Type, -Areas_1, -Areas_2, -Areas_3, -Areas_4, -Areas_5, -Region, -Publisher, -`Total Docs.`, -`Ref. / Doc.`) |>
   dplyr::rename(journal_title = Title)
 
 print("Scimago processed.")
