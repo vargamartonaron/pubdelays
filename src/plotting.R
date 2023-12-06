@@ -18,7 +18,7 @@ articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
 
 acceptance_data <- articles |>
   dplyr::group_by(article_date) |>
-  dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date <=2022)) |>
+  dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   dplyr::reframe(delay=median(acceptance_delay, na.rm=T)) |>
   tidyr::drop_na(delay)
 
@@ -37,7 +37,7 @@ acceptance_plot <- ggplot(acceptance_data, aes(x = article_date, y = delay)) +
   
 covid_acceptance_data <- articles |>
   dplyr::group_by(article_date, is_covid) |>
-  dplyr::filter(lubridate::year(article_date) >= 2019 & lubridate::year(article_date <= 2022)) |>
+  dplyr::filter(lubridate::year(article_date) >= 2019 & lubridate::year(article_date) <= 2022) |>
   dplyr::reframe(delay = median(acceptance_delay, na.rm = TRUE)) |>
   tidyr::drop_na(delay)
   
@@ -56,7 +56,7 @@ ggsave('covid_acceptance_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 20
 
 publication_data <- articles |>
   dplyr::group_by(article_date) |>
-  dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date <= 2022)) |>
+  dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   dplyr::reframe(delay=median(publication_delay, na.rm=T)) |>
   tidyr::drop_na(delay)
 
@@ -75,7 +75,7 @@ ggsave('publication_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
 
 covid_publication_data <- articles |>
   dplyr::group_by(article_date, is_covid) |>
-  dplyr::filter(lubridate::year(article_date) >= 2019 & lubridate::year(article_date <= 2022)) |>
+  dplyr::filter(lubridate::year(article_date) >= 2019 & lubridate::year(article_date) <= 2022) |>
   dplyr::reframe(delay = median(publication_delay, na.rm = TRUE)) |>
   tidyr::drop_na(delay)
 
@@ -137,7 +137,7 @@ discipined_articles <- articles |>
 relevant_areas <- c('Medicine', 'Economics', 'Biochemistry', 'Physics and Astronomy', 'Engineering', 'Arts and Humanities', 'Psychology', 'Neuroscience', 'Mathematics', 'Computer Science', 'Pharmacology')
 
 acceptance_density_disciplines_plot <- discipined_articles |>
-  dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date <= 2022)) |>
+  dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   dplyr::filter(areas %in% relevant_areas) |>
   tidyr::drop_na(acceptance_delay) |>
   ggplot(aes(x = acceptance_delay, y = reorder(areas, after_stat(density)), fill = stat(x))) +
@@ -152,7 +152,7 @@ acceptance_density_disciplines_plot <- discipined_articles |>
 ggsave('discipline_ridgeplot.pdf', width = 12, height = 16, scale = 0.9, dpi = 200)
 
 standard_dev_across_disciplines_acceptance <- discipined_articles |>
-  dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date <= 2022)) |>
+  dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   tidyr::drop_na(acceptance_delay) |>
   dplyr::group_by(areas) |>
   dplyr::reframe(mean_delay = mean(acceptance_delay),
