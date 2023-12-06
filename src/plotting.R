@@ -62,8 +62,7 @@ publication_data <- articles |>
   dplyr::group_by(article_date) |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   dplyr::reframe(delay=median(publication_delay, na.rm=T)) |>
-  tidyr::drop_na(non_covid_delay) |>
-  tidyr::drop_na(covid_delay)
+  dplyr::drop_na(delay)
 
 publication_plot <- ggplot(publication_data, aes(x = article_date, y = delay)) +
   geom_point(alpha = 1/5) +
@@ -83,7 +82,8 @@ covid_publication_data <- articles |>
   dplyr::reframe(covid_delay = median(publication_delay[is_covid], na.rm = TRUE),
                  non_covid_delay = median(publication_delay[!is_covid], na.rm = TRUE)) |>
   dplyr::filter(lubridate::year(article_date) >= 2019 & lubridate::year(article_date) <= 2022) |>
-  tidyr::drop_na(delay)
+  tidyr::drop_na(non_covid_delay) |>
+  tidyr::drop_na(covid_delay)
 
 covid_publication_plot <- ggplot(covid_publication_data, aes(x = article_date)) +
   geom_point(alpha = 0.5, aes(y = non_covid_delay, color = "Covid")) +
