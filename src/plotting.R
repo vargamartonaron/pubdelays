@@ -41,11 +41,12 @@ covid_acceptance_data <- articles |>
   dplyr::reframe(non_covid_delay = median(acceptance_delay[is_covid], na.rm = TRUE),
                  covid_delay = median(acceptance_delay[!is_covid], na.rm = TRUE)) |>
   dplyr::filter(lubridate::year(article_date) >= 2019 & lubridate::year(article_date) <= 2022) |>
-  tidyr::drop_na(delay)
+  tidyr::drop_na(non_covid_delay) |>
+  tidyr::drop_na(covid_delay)
   
 covid_acceptance_plot <- ggplot(covid_acceptance_data, aes(x = article_date)) +
   geom_point(alpha = 0.5, aes(y = non_covid_delay, color = "Covid")) +
-  geom_pint(aplha = 0.5, aes(y = covid_delay, color = "Nem Covid"))
+  geom_point(alpha = 0.5, aes(y = covid_delay, color = "Nem Covid"))
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", color = "Cikkek tematikája", title = "Elfogadási késés") +
   theme(axis.text.x = element_text(size = 16, family = "Times", hjust = 1),
@@ -61,7 +62,8 @@ publication_data <- articles |>
   dplyr::group_by(article_date) |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   dplyr::reframe(delay=median(publication_delay, na.rm=T)) |>
-  tidyr::drop_na(delay)
+  tidyr::drop_na(non_covid_delay) |>
+  tidyr::drop_na(covid_delay)
 
 publication_plot <- ggplot(publication_data, aes(x = article_date, y = delay)) +
   geom_point(alpha = 1/5) +
