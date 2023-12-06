@@ -9,8 +9,8 @@ library(ggridges)
 library(geomorph)
 
 setwd('~/pubdelays')
-extrafont::font_import(paths='~/times.ttf', prompt = FALSE)
-loadfonts()
+#extrafont::font_import(paths='~/times.ttf', prompt = FALSE)
+#loadfonts()
 
 
 articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
