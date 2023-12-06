@@ -7,6 +7,7 @@ library(extrafont)
 library(viridis)
 library(ggridges)
 library(geomorph)
+library(lubridate)
 
 setwd('~/pubdelays')
 #extrafont::font_import(paths='~/times.ttf', prompt = FALSE)
@@ -131,7 +132,7 @@ discipined_articles <- articles |>
   tidyr::separate_longer_delim(areas, delim = ",") |>
   dplyr::mutate(areas = trimws(areas)) |>
   # getting invalid rows.
-  filter(!grepl("^\\d+$", areas) & areas != "FALSE" & !is.na(areas))
+  dplyr::filter(!grepl("^\\d+$", areas) & areas != "FALSE" & !is.na(areas))
 
 relevant_areas <- c('Medicine', 'Economics', 'Biochemistry', 'Physics and Astronomy', 'Engineering', 'Arts and Humanities', 'Psychology', 'Neuroscience', 'Mathematics', 'Computer Science', 'Pharmacology')
 
@@ -153,8 +154,8 @@ ggsave('discipline_ridgeplot.pdf', width = 12, height = 16, scale = 0.9, dpi = 2
 standard_dev_across_disciplines_acceptance <- discipined_articles |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date <= 2022)) |>
   tidyr::drop_na(acceptance_delay) |>
-  group_by(areas) |>
-  reframe(mean_delay = mean(acceptance_delay),
+  dplyr::group_by(areas) |>
+  dplyr::reframe(mean_delay = mean(acceptance_delay),
           sd_delay = sd(acceptance_delay)) |>
   dplyr::mutate(coeff_of_var = sd_delay / mean_delay) |>
   ggplot(aes(x = as.numeric(factor(disciplines)), y = coeff_of_var, fill = coeff_of_var, label = areas)) +
