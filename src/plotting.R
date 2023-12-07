@@ -179,7 +179,7 @@ delays_h_index_acceptance_delay <- top_h_index_articles |>
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
   theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
         axis.title.x = element_blank()) +
-  theme(plot.title = element_text(size = 24)) +
+  theme(plot.title = element_text(size = 24))
   
 
 ggsave('top_10_h_index_acceptance_delay.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
