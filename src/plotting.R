@@ -31,7 +31,7 @@ acceptance_plot <- ggplot(acceptance_data, aes(x = article_date, y = delay)) +
   labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", title = "Elfogadási késés") +
   theme_apa(base_family = "Times", base_size = 32) + 
   ylim(40, 160) +
-  geom_hline(yintercept = 20, linetype = "dashed", color = "#BF616A")
+  geom_hline(yintercept = 100, linetype = "dashed", color = "#BF616A", linewidth = 2)
 
 ggsave('acceptance_plot.pdf', scale = 0.9, width = 16, height = 9, units = "in", dpi = 200)
   
@@ -75,7 +75,7 @@ publication_data <- articles |>
 
 publication_plot <- ggplot(publication_data, aes(x = article_date, y = delay)) +
   geom_point(alpha = 1/5) +
-  geom_hline(yintercept = 20, linetype = "dashed", color = "#BF616A") +
+  geom_hline(yintercept = 20, linetype = "dashed", color = "#BF616A", linewidth = 2) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", title = "Publikációs késés") +
   theme_apa(base_family = "Times", base_size = 32) +
@@ -171,13 +171,13 @@ delays_h_index_acceptance_delay <- top_h_index_articles |>
   dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(acceptance_delay) |>
   dplyr::filter(acceptance_delay > 0 & acceptance_delay < 200) |>
-  ggplot(aes(x = acceptance_delay, y = reorder(journal_title, -acceptance_delay), fill = after_stat(x))) +
+  ggplot(aes(x = acceptance_delay, y = reorder(journal_title, -mean(acceptance_delay)), fill = after_stat(x))) +
   geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE, quantile_lines = TRUE, quantiles = 2) +
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
-  theme_apa(base_family = "Times", base_size = 24) +
+  theme_apa(base_family = "Times", base_size = 16) +
   labs(title = "Elfogadási késés a top 10 h-index lapokban", x = NULL, y = NULL) +
   theme(axis.title.x = element_blank())
   
@@ -188,13 +188,13 @@ delays_h_index_publication_delay <- top_h_index_articles |>
   dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(publication_delay) |>
   dplyr::filter(publication_delay > 0 & publication_delay < 100) |>
-  ggplot(aes(x = publication_delay, y = reorder(journal_title, -publication_delay), fill = after_stat(x))) +
+  ggplot(aes(x = publication_delay, y = reorder(journal_title, -mean(publication_delay)), fill = after_stat(x))) +
   geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE, quantile_lines = TRUE, quantiles = 2) +
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
-  theme_apa(base_family = "Times", base_size = 24) +
+  theme_apa(base_family = "Times", base_size = 16) +
   labs(title = "Publikációs késés a top 10 h-index lapokban", x = NULL, y = NULL) +
   theme(axis.title.x = element_blank())
 
