@@ -213,12 +213,16 @@ standard_dev_across_disciplines_acceptance <- discipined_articles |>
   dplyr::reframe(mean_delay = mean(acceptance_delay),
                  sd_delay = sd(acceptance_delay),
                  date = article_date) |>
-  dplyr::mutate(coeff_of_var = sd_delay / mean_delay) |>
-  ggplot(aes(y = factor(areas), x = date, z = coeff_of_var, fill = coeff_of_var, label = areas)) +
-  stat_summary_hex(geom = "hex", bins = 30, aes(fill = after_stat(y)), alpha = 0.7) +
-  scale_fill_viridis_c(option = "plasma", trans = "log", name = "Szórás / átlag") +
-  labs(title = "Deviation Raster Plot Across Disciplines",
-       x = NULL, y = NULL) +
+  dplyr::mutate(coeff_of_var = sd_delay / mean_delay)
+
+standard_dev_across_disciplines_acceptance_plot <- standard_dev_across_disciplines_acceptance |>
+  ggplot(aes(y = factor(areas), x = date, z = coeff_of_var, fill = ..density.., label = areas)) +
+  stat_summary_2d(geom = "tile", bins = 70, aes(fill = after_stat(y)), alpha = 1) +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
+  scale_fill_viridis_c(option = "plasma", trans = "log", name = "Sűrűség", labels = scales::number_format(scale = 1, accuracy = 0.01)) +
+  labs(title = "Variációs koefficiens az évek során, területenként",
+       x = NULL, y = NULL, subtitle="Minél sűrűbb a koefficiens, annál variábilisabb volt az adott időszakban az adott terület.") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times"),
         axis.text.y = element_text(family = "Times")) +
