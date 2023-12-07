@@ -29,8 +29,7 @@ acceptance_plot <- ggplot(acceptance_data, aes(x = article_date, y = delay)) +
   geom_point(alpha = 1/5) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", title = "Elfogadási késés") +
-  theme_apa(base_family = "Times") + 
-  theme(plot.title = element_text(size = 24)) +
+  theme_apa(base_family = "Times", base_size = 32) + 
   ylim(40, 160)
 
 ggsave('acceptance_plot.pdf', scale = 0.9, width = 16, height = 9, units = "in", dpi = 200)
@@ -58,9 +57,8 @@ covid_acceptance_plot <- ggplot(joined_delay_data) +
   geom_point(alpha = 0.5, aes(x = article_date, y = non_covid_acceptance_delay, color = "Nem Covid")) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", color = NULL, title = "Elfogadási késés") +
-  theme_apa(base_family = "Times") +
+  theme_apa(base_family = "Times", base_size = 32) +
   scale_color_manual(values = c("Covid" = viridis_pal(option = "plasma")(2)[2], "Nem Covid" = viridis_pal(option = "plasma")(2)[1])) +
-  theme(plot.title = element_text(size = 24)) +
   ylim(0, 160)
 
 ggsave('covid_acceptance_plot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
@@ -75,8 +73,7 @@ publication_plot <- ggplot(publication_data, aes(x = article_date, y = delay)) +
   geom_point(alpha = 1/5) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", title = "Publikációs késés") +
-  theme_apa(base_family = "Times") +
-  theme(plot.title = element_text(size = 24)) +
+  theme_apa(base_family = "Times", base_size = 32) +
   ylim(0, 70)
 
 ggsave('publication_plot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
@@ -86,8 +83,7 @@ covid_publication_plot <- ggplot(joined_delay_data, aes(x = article_date)) +
   geom_point(alpha = 0.65, aes(y = non_covid_publication_delay, color = "Nem Covid")) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", color = NULL, title = "Publikációs késés") +
-  theme_apa(base_family = "Times") +
-  theme(plot.title = element_text(size = 24)) +
+  theme_apa(base_family = "Times", base_size = 32) +
   scale_color_manual(values = c("Covid" = viridis_pal(option = "viridis")(2)[2], "Nem Covid" = viridis_pal(option = "viridis")(2)[1])) +
   ylim(0, 70)
   
@@ -108,8 +104,7 @@ top_10_megajournals_plot <- top_10_megajournals |>
   geom_col() +
   scale_fill_viridis_c(option = "plasma", name = "Dok.-ok 2019-2022") +
   labs(y = NULL, x = NULL, title = "Mega - folyóiratok") +
-  theme_apa(base_family = "Times") +
-  theme(plot.title = element_text(size = 24))
+  theme_apa(base_family = "Times", base_size = 32)
 
 ggsave('top_10_megajournals_plot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -122,11 +117,11 @@ delays_megajournals_acceptance_delay <- top_10_megajournals_articles |>
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
-  labs(title = "Elfogadási késés a megajournalekben") +
+  labs(title = "Elfogadási késés a mega - folyóiratokban") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
   theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
         axis.title.x = element_blank()) +
-  theme(plot.title = element_text(size = 24))
+  theme_apa(base_family = "Times", base_size = 32)
 
 ggsave('top_10_megajournal_acceptance_delay.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -139,11 +134,11 @@ delays_megajournals_publication_delay <- top_10_megajournals_articles |>
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
-  labs(title = "Publikációs késés a megajournalekben") +
+  labs(title = "Publikációs késés a mega - folyóiratokban") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
   theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
         axis.title.x = element_blank()) +
-  theme(plot.title = element_text(size = 24))
+  theme_apa(base_family = "Times", base_size = 32)
 
 ggsave('top_10_megajournal_publication_delay.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -160,9 +155,8 @@ top_10_h_index_plot <- top_10_h_index_journals |>
   ggplot(aes(y = reorder(journal_title, -h_index), x = h_index, fill = h_index)) +
   geom_col() +
   scale_fill_viridis_c(option = "plasma", name = NULL) +
-  labs(title = "Top 10 h index folyóirat", x = NULL, y = NULL) +
-  theme_apa(base_family = "Times") +
-  theme(plot.title = element_text(size = 24))
+  labs(title = "Top 10 h-index folyóirat", x = NULL, y = NULL) +
+  theme_apa(base_family = "Times", base_size = 32)
   
 ggsave('top_10_h_index_plot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -175,11 +169,12 @@ delays_h_index_acceptance_delay <- top_h_index_articles |>
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
-  labs(title = "Elfogadási késés a top10 h index lapokban") +
+  labs(title = "Elfogadási késés a top 10 h-index lapokban") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
   theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
         axis.title.x = element_blank()) +
-  theme(plot.title = element_text(size = 24))
+  theme(plot.title = element_text(size = 24)) +
+  theme_apa(base_family = "Times", base_size = 32)
   
 
 ggsave('top_10_h_index_acceptance_delay.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
@@ -193,11 +188,11 @@ delays_h_index_publication_delay <- top_h_index_articles |>
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
-  labs(title = "Publikációs késés a top10 h index lapokban") +
+  labs(title = "Publikációs késés a top 10 h-index lapokban") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
   theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
         axis.title.x = element_blank()) +
-  theme(plot.title = element_text(size = 24))
+  theme_apa(base_family = "Times", base_size = 32)
 
 ggsave('top_10_h_index_publication_delay.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -223,8 +218,7 @@ acceptance_density_disciplines_plot <- discipined_articles |>
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
   theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
         axis.title.x = element_blank()) +
-  theme(plot.title = element_text(size = 24),
-        plot.subtitle = element_text(size = 16))
+  theme_apa(base_family = "Times", base_size = 32)
 
 
 ggsave('discipline_ridgeplot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
@@ -238,6 +232,7 @@ standard_dev_across_disciplines_acceptance <- discipined_articles |>
                  coeff_of_var = sd_delay / mean_delay)
 
 standard_dev_across_disciplines_acceptance_plot <- standard_dev_across_disciplines_acceptance |>
+  dplyr::filter(!is.na(coeff_of_var)) |>
   ggplot(aes(y = factor(areas), x = article_date, z = coeff_of_var)) +
   stat_summary_2d(geom = "raster", bins = 30, alpha = 0.8, fun = "identity") +
   scale_y_discrete(expand = c(0, 0)) +
@@ -248,8 +243,6 @@ standard_dev_across_disciplines_acceptance_plot <- standard_dev_across_disciplin
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times"),
         axis.text.y = element_text(family = "Times")) +
-  theme_apa(base_family = "Times") +
-  theme(plot.title = element_text(size = 24),
-        plot.subtitle = element_text(size = 16))
+  theme_apa(base_family = "Times", base_size = 32)
 
 ggsave('deviation_raster_plot.pdf', dpi = 200, width = 16, height = 9, units = "in")
