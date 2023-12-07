@@ -89,7 +89,8 @@ ggsave('covid_publication_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 2
 top_10_megajournals <- articles |>
   dplyr::group_by(journal_title) |>
   dplyr::reframe(total_docs = first(`total_docs._(3years)`)) |>
-  dplyr::slice_max(order_by = total_docs, n = 10)
+  dplyr::arrange(desc(total_docs)) |>
+  dplyr::slice_head(n = 10)
 
 top_10_megajournals_articles <- articles |>
   filter(journal_title %in% top_10_megajournals$journal_title)
