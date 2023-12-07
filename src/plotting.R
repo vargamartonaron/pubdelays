@@ -136,7 +136,7 @@ ggsave('top_10_megajournal_publication_delay.pdf', scale = 0.9, dpi = 200)
 
 top_10_h_index_journals <- articles |>
   group_by(journal_title) |>
-  reframe(h_index = first(h_index)) |>
+  reframe(h_index = first(as.numeric(h_index))) |>
   arrange(desc(h_index)) |>
   slice_head(n = 10)
 
