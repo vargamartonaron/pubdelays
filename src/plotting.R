@@ -111,7 +111,7 @@ ggsave('top_10_megajournals_plot.pdf', scale = 0.9, dpi = 200)
 delays_megajournals_acceptance_delay <- top_10_megajournals_articles |>
   dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(acceptance_delay) |>
-  dplyr::filter(acceptance_delay > 0 & acceptance_delay < 150)
+  dplyr::filter(acceptance_delay > 0 & acceptance_delay < 150) |>
   ggplot(aes(x = acceptance_delay, y = reorder(journal_title, -acceptance_delay), fill = after_stat(x))) +
   geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01, gradient_lwd = 0, panel_scaling = TRUE) +
   scale_x_continuous(expansion(c(0, 0))) +
@@ -127,7 +127,7 @@ ggsave('top_10_megajournal_acceptance_delay.pdf', scale = 0.9, dpi = 200)
 delays_megajournals_publication_delay <- top_10_megajournals_articles |>
   dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(publication_delay) |>
-  dplyr::filter(publication_delay > 0 & publication_delay < 100)
+  dplyr::filter(publication_delay > 0 & publication_delay < 100) |>
   ggplot(aes(x = publication_delay, y = reorder(journal_title, -publication_delay), fill = after_stat(x))) +
   geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
   scale_x_continuous(expansion(c(0, 0))) +
@@ -161,7 +161,7 @@ ggsave('top_10_h_index_plot.pdf', scale = 0.9, dpi = 200)
 delays_h_index_acceptance_delay <- top_h_index_articles |>
   dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(acceptance_delay) |>
-  dplyr::filter(acceptance_delay > 0 & acceptance_delay < 200)
+  dplyr::filter(acceptance_delay > 0 & acceptance_delay < 200) |>
   ggplot(aes(x = acceptance_delay, y = reorder(journal_title, -acceptance_delay), fill = after_stat(x))) +
   geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
   scale_x_continuous(expansion(c(0, 0))) +
@@ -177,7 +177,7 @@ ggsave('top_10_h_index_acceptance_delay.pdf', scale = 0.9, dpi = 200)
 delays_h_index_publication_delay <- top_h_index_articles |>
   dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(publication_delay) |>
-  dplyr::filter(publication_delay > 0 & publication_delay < 100)
+  dplyr::filter(publication_delay > 0 & publication_delay < 100) |>
   ggplot(aes(x = publication_delay, y = reorder(journal_title, -publication_delay), fill = after_stat(x))) +
   geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
   scale_x_continuous(expansion(c(0, 0))) +
@@ -202,7 +202,7 @@ acceptance_density_disciplines_plot <- discipined_articles |>
   dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   dplyr::filter(areas %in% relevant_areas) |>
   tidyr::drop_na(acceptance_delay) |>
-  dplyr::filter(acceptance_delay > 0 & acceptance_delay < 200)
+  dplyr::filter(acceptance_delay > 0 & acceptance_delay < 200) |>
   ggplot(aes(x = acceptance_delay, y = reorder(areas, -acceptance_delay), fill = after_stat(x))) +
   geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
   scale_x_continuous(expansion(0, 0)) +
