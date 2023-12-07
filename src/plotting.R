@@ -21,7 +21,7 @@ articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
 acceptance_data <- articles |>
   dplyr::group_by(article_date) |>
   dplyr::reframe(delay = median(acceptance_delay, na.rm=T)) |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-00')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(delay)
 
   
@@ -38,7 +38,7 @@ covid_delay_data <- articles |>
   dplyr::group_by(article_date) |>
   dplyr::reframe(covid_acceptance_delay = median(acceptance_delay[is_covid], na.rm = TRUE),
                  covid_publication_delay = median(publication_delay[is_covid], na.rm = TRUE)) |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-00')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(covid_acceptance_delay) |>
   tidyr::drop_na(covid_publication_delay)
 
@@ -50,7 +50,7 @@ non_covid_delay_data <- articles |>
   tidyr::drop_na(non_covid_publication_delay)
 
 joined_delay_data <- left_join(non_covid_delay_data, covid_delay_data, by = join_by(article_date)) |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-00'))
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01'))
   
 covid_acceptance_plot <- ggplot(joined_delay_data) +
   geom_point(alpha = 0.5, aes(x = article_date, y = covid_acceptance_delay, color = "Covid")) +
@@ -66,7 +66,7 @@ ggsave('covid_acceptance_plot.pdf', scale = 0.9, dpi = 200)
 publication_data <- articles |>
   dplyr::group_by(article_date) |>
   dplyr::reframe(delay=median(publication_delay, na.rm=T)) |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-00')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(delay)
 
 publication_plot <- ggplot(publication_data, aes(x = article_date, y = delay)) +
@@ -109,7 +109,7 @@ top_10_megajournals_plot <- top_10_megajournals |>
 ggsave('top_10_megajournals_plot.pdf', scale = 0.9, dpi = 200)
 
 delays_megajournals_acceptance_delay <- top_10_megajournals_articles |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-00')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(acceptance_delay) |>
   dplyr::filter(acceptance_delay > 0 & acceptance_delay < 150)
   ggplot(aes(x = acceptance_delay, y = reorder(journal_title, -acceptance_delay), fill = after_stat(x))) +
@@ -125,7 +125,7 @@ delays_megajournals_acceptance_delay <- top_10_megajournals_articles |>
 ggsave('top_10_megajournal_acceptance_delay.pdf', scale = 0.9, dpi = 200)
 
 delays_megajournals_publication_delay <- top_10_megajournals_articles |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-00')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(publication_delay) |>
   dplyr::filter(publication_delay > 0 & publication_delay < 100)
   ggplot(aes(x = publication_delay, y = reorder(journal_title, -publication_delay), fill = after_stat(x))) +
@@ -159,7 +159,7 @@ top_10_h_index_plot <- top_10_h_index_journals |>
 ggsave('top_10_h_index_plot.pdf', scale = 0.9, dpi = 200)
 
 delays_h_index_acceptance_delay <- top_h_index_articles |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-00')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(acceptance_delay) |>
   dplyr::filter(acceptance_delay > 0 & acceptance_delay < 200)
   ggplot(aes(x = acceptance_delay, y = reorder(journal_title, -acceptance_delay), fill = after_stat(x))) +
@@ -175,7 +175,7 @@ delays_h_index_acceptance_delay <- top_h_index_articles |>
 ggsave('top_10_h_index_acceptance_delay.pdf', scale = 0.9, dpi = 200)
 
 delays_h_index_publication_delay <- top_h_index_articles |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-00')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(publication_delay) |>
   dplyr::filter(publication_delay > 0 & publication_delay < 100)
   ggplot(aes(x = publication_delay, y = reorder(journal_title, -publication_delay), fill = after_stat(x))) +
@@ -199,7 +199,7 @@ discipined_articles <- articles |>
 relevant_areas <- c('Medicine', 'Economics', 'Biochemistry', 'Physics and Astronomy', 'Engineering', 'Arts and Humanities', 'Psychology', 'Neuroscience', 'Mathematics', 'Computer Science', 'Pharmacology')
 
 acceptance_density_disciplines_plot <- discipined_articles |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-00')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   dplyr::filter(areas %in% relevant_areas) |>
   tidyr::drop_na(acceptance_delay) |>
   dplyr::filter(acceptance_delay > 0 & acceptance_delay < 200)
@@ -217,7 +217,7 @@ acceptance_density_disciplines_plot <- discipined_articles |>
 ggsave('discipline_ridgeplot.pdf', scale = 0.9, dpi = 200)
 
 standard_dev_across_disciplines_acceptance <- discipined_articles |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-00')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
   tidyr::drop_na(acceptance_delay) |>
   dplyr::group_by(areas, article_date) |>
   dplyr::reframe(mean_delay = mean(acceptance_delay),
