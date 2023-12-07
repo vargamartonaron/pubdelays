@@ -14,13 +14,13 @@ setwd('~/pubdelays')
 #loadfonts()
 
 
-articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
-#articles <- read_tsv('/home/martonaronvarga/GitHub/ppk_expcourse/journal_articles.tsv')
+#articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
+articles <- read_tsv('/home/martonaronvarga/GitHub/ppk_expcourse/journal_articles.tsv')
 
 acceptance_data <- articles |>
   dplyr::group_by(article_date) |>
-  dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   dplyr::reframe(delay = median(acceptance_delay, na.rm=T)) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2023-01-01')) |>
   tidyr::drop_na(delay)
 
   
@@ -32,15 +32,15 @@ acceptance_plot <- ggplot(acceptance_data, aes(x = article_date, y = delay)) +
         axis.text.y = element_text(size = 16, family = "Times"),
         axis.title = element_text(size = 22, family = "Times")) +
   theme_apa() + 
-  ylim(0, 300)
+  ylim(0, 200)
 
 ggsave('acceptance_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
   
 covid_acceptance_data <- articles |>
   dplyr::group_by(article_date) |>
-  dplyr::reframe(non_covid_delay = median(acceptance_delay[is_covid], na.rm = TRUE),
-                 covid_delay = median(acceptance_delay[!is_covid], na.rm = TRUE)) |>
-  dplyr::filter(lubridate::year(article_date) >= 2019 & lubridate::year(article_date) <= 2022) |>
+  dplyr::reframe(non_covid_delay = median(acceptance_delay[!is_covid], na.rm = TRUE),
+                 covid_delay = median(acceptance_delay[is_covid], na.rm = TRUE)) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2023-01-01')) |>
   tidyr::drop_na(non_covid_delay) |>
   tidyr::drop_na(covid_delay)
   
@@ -52,27 +52,25 @@ covid_acceptance_plot <- ggplot(covid_acceptance_data, aes(x = article_date)) +
   theme(axis.text.x = element_text(size = 16, family = "Times", hjust = 1),
         axis.text.y = element_text(size = 16, family = "Times"),
         axis.title = element_text(size = 22, family = "Times")) +
-  theme_apa() + 
-  ylim(0, 300) +
+  theme_apa() +
   scale_color_manual(values = c("Covid" = viridis_pal(option = "plasma")(2)[2], "Nem Covid" = viridis_pal(option = "plasma")(2)[1]))
 
 ggsave('covid_acceptance_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
 
 publication_data <- articles |>
   dplyr::group_by(article_date) |>
-  dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   dplyr::reframe(delay=median(publication_delay, na.rm=T)) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2023-01-01')) |>
   tidyr::drop_na(delay)
 
 publication_plot <- ggplot(publication_data, aes(x = article_date, y = delay)) +
-  geom_point(alpha = 1/5) +
+  geom_point(alpha = 1) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", title = "Publikációs késés") +
   theme(axis.text.x = element_text(size = 16, family = "Times", hjust = 1),
         axis.text.y = element_text(size = 16, family = "Times"),
         axis.title = element_text(size = 22, family = "Times")) +
-  theme_apa() + 
-  ylim(0, 300)
+  theme_apa()
 
 ggsave('publication_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
 
@@ -81,21 +79,20 @@ covid_publication_data <- articles |>
   dplyr::group_by(article_date) |>
   dplyr::reframe(covid_delay = median(publication_delay[is_covid], na.rm = TRUE),
                  non_covid_delay = median(publication_delay[!is_covid], na.rm = TRUE)) |>
-  dplyr::filter(lubridate::year(article_date) >= 2019 & lubridate::year(article_date) <= 2022) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2023-01-01')) |>
   tidyr::drop_na(non_covid_delay) |>
   tidyr::drop_na(covid_delay)
 
 covid_publication_plot <- ggplot(covid_publication_data, aes(x = article_date)) +
   geom_point(alpha = 0.5, aes(y = non_covid_delay, color = "Covid")) +
-  geom_point(aplha = 0.5, aes(y = covid_delay, color = "Nem Covid"))
+  geom_point(alpha = 0.5, aes(y = covid_delay, color = "Nem Covid")) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", color = "Covid cikkek", title = "Publikációs késés") +
   theme(axis.text.x = element_text(size = 16, family = "Times", hjust = 1),
         axis.text.y = element_text(size = 16, family = "Times"),
         axis.title = element_text(size = 22, family = "Times")) +
-  theme_apa() + 
-  ylim(0, 300) +
-  scale_color_manual(values = c("Covid" = viridis_pal(option = "plasma")(2)[2], "Nem Covid" = viridis_pal(option = "plasma")(2)[1]))
+  theme_apa() +
+  scale_color_manual(values = c("Covid" = viridis_pal(option = "viridis")(2)[2], "Nem Covid" = viridis_pal(option = "viridis")(2)[1]))
   
 
 ggsave('covid_publication_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
@@ -148,14 +145,16 @@ acceptance_density_disciplines_plot <- discipined_articles |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   dplyr::filter(areas %in% relevant_areas) |>
   tidyr::drop_na(acceptance_delay) |>
-  ggplot(aes(x = acceptance_delay, y = reorder(areas, after_stat(density)), fill = stat(x))) +
-  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01, gradient_lwd = 1.) +
+  ggplot(aes(x = acceptance_delay, y = reorder(areas, -acceptance_delay), fill = after_stat(x))) +
+  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 0, panel_scaling = TRUE) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_discrete(expand = expand_scale(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
   labs(title = "Elfogadási késés diszciplinánként", subtitle = "Egy cikk több diszciplinába is tartozhat, a folyóirat alapján") +
   theme_ridges(font_size = 13, grid = TRUE) +
-  theme(axis.title.y = element_blank(), text = element_text(family = "Times"))
+  theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
+        axis.title.x = element_blank())
+
 
 ggsave('discipline_ridgeplot.pdf', width = 12, height = 16, scale = 0.9, dpi = 200)
 
