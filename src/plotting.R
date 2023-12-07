@@ -21,7 +21,7 @@ articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
 acceptance_data <- articles |>
   dplyr::group_by(article_date) |>
   dplyr::reframe(delay = median(acceptance_delay, na.rm=T)) |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2023-01-01')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-31')) |>
   tidyr::drop_na(delay)
 
   
@@ -30,15 +30,15 @@ acceptance_plot <- ggplot(acceptance_data, aes(x = article_date, y = delay)) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", title = "Elfogadási késés") +
   theme_apa(base_family = "Times") + 
-  ylim(0, 200)
+  ylim(40, 160)
 
-ggsave('acceptance_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
+ggsave('acceptance_plot.pdf', scale = 0.9, dpi = 200)
   
 covid_delay_data <- articles |>
   dplyr::group_by(article_date) |>
   dplyr::reframe(covid_acceptance_delay = median(acceptance_delay[is_covid], na.rm = TRUE),
                  covid_publication_delay = median(publication_delay[is_covid], na.rm = TRUE)) |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2023-01-01')) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-31')) |>
   tidyr::drop_na(covid_acceptance_delay) |>
   tidyr::drop_na(covid_publication_delay)
 
@@ -49,7 +49,8 @@ non_covid_delay_data <- articles |>
   tidyr::drop_na(non_covid_acceptance_delay) |>
   tidyr::drop_na(non_covid_publication_delay)
 
-joined_delay_data <- left_join(non_covid_delay_data, covid_delay_data, by = join_by(article_date))
+joined_delay_data <- left_join(non_covid_delay_data, covid_delay_data, by = join_by(article_date)) |>
+  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-31'))
   
 covid_acceptance_plot <- ggplot(joined_delay_data) +
   geom_point(alpha = 0.5, aes(x = article_date, y = covid_acceptance_delay, color = "Covid")) +
@@ -57,9 +58,10 @@ covid_acceptance_plot <- ggplot(joined_delay_data) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", color = "Cikkek tematikája", title = "Elfogadási késés") +
   theme_apa(base_family = "Times") +
-  scale_color_manual(values = c("Covid" = viridis_pal(option = "plasma")(2)[2], "Nem Covid" = viridis_pal(option = "plasma")(2)[1]))
+  scale_color_manual(values = c("Covid" = viridis_pal(option = "plasma")(2)[2], "Nem Covid" = viridis_pal(option = "plasma")(2)[1])) +
+  ylim(0, 160)
 
-ggsave('covid_acceptance_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
+ggsave('covid_acceptance_plot.pdf', scale = 0.9, dpi = 200)
 
 publication_data <- articles |>
   dplyr::group_by(article_date) |>
@@ -71,9 +73,10 @@ publication_plot <- ggplot(publication_data, aes(x = article_date, y = delay)) +
   geom_point(alpha = 1) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", title = "Publikációs késés") +
-  theme_apa(base_family = "Times")
+  theme_apa(base_family = "Times") +
+  ylim(0, 180)
 
-ggsave('publication_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
+ggsave('publication_plot.pdf', scale = 0.9, dpi = 200)
 
 covid_publication_plot <- ggplot(joined_delay_data, aes(x = article_date)) +
   geom_point(alpha = 0.5, aes(y = covid_publication_delay, color = "Covid")) +
@@ -81,10 +84,11 @@ covid_publication_plot <- ggplot(joined_delay_data, aes(x = article_date)) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", color = "Covid cikkek", title = "Publikációs késés") +
   theme_apa(base_family = "Times") +
-  scale_color_manual(values = c("Covid" = viridis_pal(option = "viridis")(2)[2], "Nem Covid" = viridis_pal(option = "viridis")(2)[1]))
+  scale_color_manual(values = c("Covid" = viridis_pal(option = "viridis")(2)[2], "Nem Covid" = viridis_pal(option = "viridis")(2)[1])) +
+  ylim(0, 180)
   
 
-ggsave('covid_publication_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
+ggsave('covid_publication_plot.pdf', scale = 0.9, dpi = 200)
 
 top_10_megajournals <- articles |>
   dplyr::group_by(journal_title) |>
@@ -102,7 +106,7 @@ top_10_megajournals_plot <- top_10_megajournals |>
   labs(y = NULL, x = NULL, title = "Mega - folyóiratok") +
   theme_apa(base_family = "Times")
 
-ggsave('top_10_megajournals_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
+ggsave('top_10_megajournals_plot.pdf', scale = 0.9, dpi = 200)
 
 delays_megajournals_acceptance_delay <- top_10_megajournals_articles |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
@@ -123,7 +127,7 @@ delays_megajournals_publication_delay <- top_10_megajournals_articles |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   tidyr::drop_na(publication_delay) |>
   ggplot(aes(x = publication_delay, y = reorder(journal_title, -publication_delay), fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 0, panel_scaling = TRUE) +
+  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
@@ -148,15 +152,15 @@ top_10_h_index_plot <- top_10_h_index_journals |>
   geom_col() +
   scale_fill_viridis_c(option = "plasma", name = NULL) +
   labs(title = "Top 10 h index folyóirat", x = NULL, y = NULL) +
-  theme_apa()
+  theme_apa(base_family = "Times")
 
-ggsave('top_10_h_index_plot.pdf', width = 7, height = 7, scale = 0.9, dpi = 200)
+ggsave('top_10_h_index_plot.pdf', scale = 0.9, dpi = 200)
 
 delays_h_index_acceptance_delay <- top_h_index_articles |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   tidyr::drop_na(acceptance_delay) |>
   ggplot(aes(x = acceptance_delay, y = reorder(journal_title, -acceptance_delay), fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 0, panel_scaling = TRUE) +
+  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
@@ -171,7 +175,7 @@ delays_h_index_publication_delay <- top_h_index_articles |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
   tidyr::drop_na(publication_delay) |>
   ggplot(aes(x = publication_delay, y = reorder(journal_title, -publication_delay), fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 0, panel_scaling = TRUE) +
+  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
@@ -195,7 +199,7 @@ acceptance_density_disciplines_plot <- discipined_articles |>
   dplyr::filter(areas %in% relevant_areas) |>
   tidyr::drop_na(acceptance_delay) |>
   ggplot(aes(x = acceptance_delay, y = reorder(areas, -acceptance_delay), fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 0, panel_scaling = TRUE) +
+  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_discrete(expand = expand_scale(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
@@ -205,7 +209,7 @@ acceptance_density_disciplines_plot <- discipined_articles |>
         axis.title.x = element_blank())
 
 
-ggsave('discipline_ridgeplot.pdf', width = 12, height = 16, scale = 0.9, dpi = 200)
+ggsave('discipline_ridgeplot.pdf', scale = 0.9, dpi = 200)
 
 standard_dev_across_disciplines_acceptance <- discipined_articles |>
   dplyr::filter(lubridate::year(article_date) >= 2016 & lubridate::year(article_date) <= 2022) |>
@@ -227,6 +231,6 @@ standard_dev_across_disciplines_acceptance_plot <- standard_dev_across_disciplin
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times"),
         axis.text.y = element_text(family = "Times")) +
-  theme_apa()
+  theme_apa(base_family = "Times")
 
 ggsave('deviation_raster_plot.pdf', dpi = 200)
