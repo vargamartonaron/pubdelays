@@ -30,7 +30,8 @@ acceptance_plot <- ggplot(acceptance_data, aes(x = article_date, y = delay)) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", title = "Elfogadási késés") +
   theme_apa(base_family = "Times", base_size = 32) + 
-  ylim(40, 160)
+  ylim(40, 160) +
+  geom_hline(yintercept = 20, linetype = "dashed", color = "#BF616A")
 
 ggsave('acceptance_plot.pdf', scale = 0.9, width = 16, height = 9, units = "in", dpi = 200)
   
@@ -58,8 +59,11 @@ covid_acceptance_plot <- ggplot(joined_delay_data) +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", color = NULL, title = "Elfogadási késés") +
   theme_apa(base_family = "Times", base_size = 32) +
-  scale_color_manual(values = c("Covid" = viridis_pal(option = "plasma")(2)[2], "Nem Covid" = viridis_pal(option = "plasma")(2)[1])) +
-  ylim(0, 160)
+  scale_color_manual(values = c("Covid" = viridis_pal(option = "viridis")(2)[2], "Nem Covid" = viridis_pal(option = "viridis")(2)[1])) +
+  ylim(0, 160) +
+  theme(legend.key.size = unit(2, "cm"),
+        legend.text = element_text(size = 32),
+        legend.position = c(0.3, 0.3))
 
 ggsave('covid_acceptance_plot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -71,6 +75,7 @@ publication_data <- articles |>
 
 publication_plot <- ggplot(publication_data, aes(x = article_date, y = delay)) +
   geom_point(alpha = 1/5) +
+  geom_hline(yintercept = 20, linetype = "dashed", color = "#BF616A") +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", title = "Publikációs késés") +
   theme_apa(base_family = "Times", base_size = 32) +
@@ -85,7 +90,9 @@ covid_publication_plot <- ggplot(joined_delay_data, aes(x = article_date)) +
   labs(y = "Publikációs késés mediánja (nap)", x = "Dátum", color = NULL, title = "Publikációs késés") +
   theme_apa(base_family = "Times", base_size = 32) +
   scale_color_manual(values = c("Covid" = viridis_pal(option = "viridis")(2)[2], "Nem Covid" = viridis_pal(option = "viridis")(2)[1])) +
-  ylim(0, 70)
+  ylim(0, 70) +
+  theme(legend.key.size = unit(2, "cm"),
+        legend.position = c(0.8, 0.8))
   
 
 ggsave('covid_publication_plot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
@@ -103,8 +110,9 @@ top_10_megajournals_plot <- top_10_megajournals |>
   ggplot(aes(y = reorder(journal_title, -total_docs), x = total_docs, fill = total_docs)) +
   geom_col() +
   scale_fill_viridis_c(option = "plasma", name = "Dok.-ok 2019-2022") +
+  theme_apa(base_family = "Times", base_size = 16) +
   labs(y = NULL, x = NULL, title = "Mega - folyóiratok") +
-  theme_apa(base_family = "Times", base_size = 32)
+  theme(axis.title.x = element_blank())
 
 ggsave('top_10_megajournals_plot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -113,15 +121,14 @@ delays_megajournals_acceptance_delay <- top_10_megajournals_articles |>
   tidyr::drop_na(acceptance_delay) |>
   dplyr::filter(acceptance_delay > 0 & acceptance_delay < 150) |>
   ggplot(aes(x = acceptance_delay, y = reorder(journal_title, -acceptance_delay), fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 0, panel_scaling = TRUE) +
+  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 0, panel_scaling = TRUE, quantile_lines = TRUE, quantiles = 2) +
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
-  labs(title = "Elfogadási késés a mega - folyóiratokban") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
-  theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
-        axis.title.x = element_blank()) +
-  theme_apa(base_family = "Times", base_size = 32)
+  theme_apa(base_family = "Times", base_size = 24) +
+  labs(title = "Elfogadási késés a mega - folyóiratokban", x = NULL, y = NULL) +
+  theme(axis.title.x = element_blank())
 
 ggsave('top_10_megajournal_acceptance_delay.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -130,15 +137,14 @@ delays_megajournals_publication_delay <- top_10_megajournals_articles |>
   tidyr::drop_na(publication_delay) |>
   dplyr::filter(publication_delay > 0 & publication_delay < 100) |>
   ggplot(aes(x = publication_delay, y = reorder(journal_title, -publication_delay), fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
+  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE, quantile_lines = TRUE, quantiles = 2) +
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
-  labs(title = "Publikációs késés a mega - folyóiratokban") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
-  theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
-        axis.title.x = element_blank()) +
-  theme_apa(base_family = "Times", base_size = 32)
+  theme_apa(base_family = "Times", base_size = 24) +
+  labs(title = "Publikációs késés a mega - folyóiratokban", x = NULL, y = NULL) +
+  theme(axis.title.x = element_blank())
 
 ggsave('top_10_megajournal_publication_delay.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -155,8 +161,9 @@ top_10_h_index_plot <- top_10_h_index_journals |>
   ggplot(aes(y = reorder(journal_title, -h_index), x = h_index, fill = h_index)) +
   geom_col() +
   scale_fill_viridis_c(option = "plasma", name = NULL) +
+  theme_apa(base_family = "Times", base_size = 16) +
   labs(title = "Top 10 h-index folyóirat", x = NULL, y = NULL) +
-  theme_apa(base_family = "Times", base_size = 32)
+  theme(axis.title.x = element_blank())
   
 ggsave('top_10_h_index_plot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -165,16 +172,14 @@ delays_h_index_acceptance_delay <- top_h_index_articles |>
   tidyr::drop_na(acceptance_delay) |>
   dplyr::filter(acceptance_delay > 0 & acceptance_delay < 200) |>
   ggplot(aes(x = acceptance_delay, y = reorder(journal_title, -acceptance_delay), fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
+  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE, quantile_lines = TRUE, quantiles = 2) +
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
-  labs(title = "Elfogadási késés a top 10 h-index lapokban") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
-  theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
-        axis.title.x = element_blank()) +
-  theme(plot.title = element_text(size = 24)) +
-  theme_apa(base_family = "Times", base_size = 32)
+  theme_apa(base_family = "Times", base_size = 24) +
+  labs(title = "Elfogadási késés a top 10 h-index lapokban", x = NULL, y = NULL) +
+  theme(axis.title.x = element_blank())
   
 
 ggsave('top_10_h_index_acceptance_delay.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
@@ -184,15 +189,14 @@ delays_h_index_publication_delay <- top_h_index_articles |>
   tidyr::drop_na(publication_delay) |>
   dplyr::filter(publication_delay > 0 & publication_delay < 100) |>
   ggplot(aes(x = publication_delay, y = reorder(journal_title, -publication_delay), fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
+  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE, quantile_lines = TRUE, quantiles = 2) +
   scale_x_continuous(expansion(c(0, 0))) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
-  labs(title = "Publikációs késés a top 10 h-index lapokban") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
-  theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
-        axis.title.x = element_blank()) +
-  theme_apa(base_family = "Times", base_size = 32)
+  theme_apa(base_family = "Times", base_size = 24) +
+  labs(title = "Publikációs késés a top 10 h-index lapokban", x = NULL, y = NULL) +
+  theme(axis.title.x = element_blank())
 
 ggsave('top_10_h_index_publication_delay.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
 
@@ -210,15 +214,14 @@ acceptance_density_disciplines_plot <- discipined_articles |>
   tidyr::drop_na(acceptance_delay) |>
   dplyr::filter(acceptance_delay > 0 & acceptance_delay < 200) |>
   ggplot(aes(x = acceptance_delay, y = reorder(areas, -acceptance_delay), fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE) +
+  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01, gradient_lwd = 1., panel_scaling = TRUE, quantile_lines = TRUE, quantiles = 2) +
   scale_x_continuous(expansion(0, 0)) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   scale_fill_viridis_c(name = "Késés", option = "plasma") +
-  labs(title = "Elfogadási késés diszciplinánként", subtitle = "Egy cikk több diszciplinába is tartozhat, a folyóirat alapján") +
   theme_ridges(font_size = 12, grid = TRUE, font_family = "Times") +
-  theme(axis.title.y = element_blank(), text = element_text(family = "Times"),
-        axis.title.x = element_blank()) +
-  theme_apa(base_family = "Times", base_size = 32)
+  theme_apa(base_family = "Times", base_size = 32) +
+  labs(title = "Elfogadási késés diszciplinánként", subtitle = "Egy cikk több diszciplinába is tartozhat, a folyóirat alapján", x = NULL, y = NULL) +
+  theme(axis.title.x = element_blank())
 
 
 ggsave('discipline_ridgeplot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
@@ -233,16 +236,16 @@ standard_dev_across_disciplines_acceptance <- discipined_articles |>
 
 standard_dev_across_disciplines_acceptance_plot <- standard_dev_across_disciplines_acceptance |>
   dplyr::filter(!is.na(coeff_of_var)) |>
-  ggplot(aes(y = factor(areas), x = article_date, z = coeff_of_var)) +
-  stat_summary_2d(geom = "raster", bins = 30, alpha = 0.8, fun = "identity") +
-  scale_y_discrete(expand = c(0, 0)) +
+  dplyr::filter(areas %in% relevant_areas) |>
+  ggplot(aes(y = coeff_of_var, x = article_date, group = areas)) +
+  geom_smooth(method = "loess", se = FALSE) +
+  facet_grid(areas ~ ., scales = "free_y", space = "free_y") +
   scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
-  scale_fill_viridis_c(option = "plasma", trans = "log", name = "Koeff", labels = scales::number_format(scale = 1, accuracy = 0.01)) +
+  theme_apa(base_family = "Times", base_size = 24) +
   labs(title = "Variációs koefficiens az évek során, területenként",
-       x = NULL, y = NULL, subtitle="Minél nagyobb a koefficiens, annál variábilisabb volt az adott napon az adott terület.") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times"),
-        axis.text.y = element_text(family = "Times")) +
-  theme_apa(base_family = "Times", base_size = 32)
+       x = NULL, y = NULL, subtitle="Minél nagyobb a koefficiens, annál variábilisabb volt az adott napon az adott terület.", color = NULL) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        strip.placement = "outside", strip.background = element_blank())
 
-ggsave('deviation_raster_plot.pdf', dpi = 200, width = 16, height = 9, units = "in")
+ggsave('deviation_coeff_plot.pdf', dpi = 200, width = 9, height = 16, units = "in")
