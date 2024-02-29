@@ -23,14 +23,14 @@ articles = articles |>
 acceptance_data <- articles |>
   dplyr::group_by(article_date_month) |>
   dplyr::reframe(delay = median(acceptance_delay, na.rm=T)) |>
-  # dplyr::filter(article_date_month >= lubridate::as_date('2016-01') & article_date_month <= lubridate::as_date('2022-12')) |>
+  dplyr::filter(article_date_month >= lubridate::as_date('2016-01-01') & article_date_month <= lubridate::as_date('2023-12-01')) |>
   tidyr::drop_na(delay) |>
   filter(delay <= 700)
 
 acceptance_data_journal <- articles |>
   dplyr::group_by(article_date_month, journal_title) |>
   dplyr::reframe(delay = median(acceptance_delay, na.rm=T)) |>
-  # dplyr::filter(article_date_month >= lubridate::as_date('2016-01') & article_date_month <= lubridate::as_date('2022-12')) |>
+  dplyr::filter(article_date_month >= lubridate::as_date('2016-01-01') & article_date_month <= lubridate::as_date('2023-12-01')) |>
   tidyr::drop_na(delay)
 
 acceptance_plot <- ggplot(acceptance_data, aes(x = as_date(article_date_month), y = delay)) +
@@ -50,9 +50,9 @@ ggsave('acceptance_plot_journal.pdf', scale = 0.9, dpi = 200, width = 16, height
 
 
 bin_plot <- ggplot(acceptance_data_journal, aes(x = as_date(article_date_month), y = delay)) +
-  geom_bin2d(bins = 40) +
-  scale_fill_gradient(low = "#56B1F7",
+  geom_bin2d(bins = 80) +
+  scale_fill_gradient(low = "#FFFFFF",
                       high = "#132B43") +
   geom_density2d() +
-  ylim(0, 500)
+  ylim(0, 400)
 ggsave('bin_plot.pdf', scale = 0.9, dpi = 200, width = 16, height = 9, units = "in")
