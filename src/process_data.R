@@ -13,22 +13,24 @@ print(nrow(articles))
 print("JSON parsed into dataframe.")
 scimago <- readr::read_csv("/users/usumusu/scimagojr_2022.csv")
 print("Journal data parsed into dataframe.")
+webofscience = readr::read_csv()
+print("Web of Science parsed into dataframe.")
 
 covid_synonyms <- c('covid',
-                     'covid-19',
-                     'coronavirus disease 19',
-                     'sars-cov-2',
-                     '2019-ncov',
-                     '2019ncov',
-                     '2019-n-cov',
-                     '2019n-cov',
-                     'ncov-2019',
-                     'n-cov-2019',
-                     'coronavirus-2019',
-                     'wuhan pneumonia',
-                     'wuhan virus',
-                     'wuhan coronavirus',
-                     'coronavirus 2')
+                    'covid-19',
+                    'coronavirus disease 19',
+                    'sars-cov-2',
+                    '2019-ncov',
+                    '2019ncov',
+                    '2019-n-cov',
+                    '2019n-cov',
+                    'ncov-2019',
+                    'n-cov-2019',
+                    'coronavirus-2019',
+                    'wuhan pneumonia',
+                    'wuhan virus',
+                    'wuhan coronavirus',
+                    'coronavirus 2')
 
 covid_pattern <- paste0("\\b(?:", paste(covid_synonyms, collapse = "|"), ")\\b")
 
@@ -42,7 +44,7 @@ articles <- articles |>
   tidyr::unnest(history) |>
   dplyr::mutate(keywords = stringr::str_replace_all(keywords, ";", ",")) |>
   dplyr::mutate(
-      publication_types = stringr::str_extract_all(publication_types, "(?<=:)[^;]+") |> 
+    publication_types = stringr::str_extract_all(publication_types, "(?<=:)[^;]+") |> 
       # concatenate types with commas
       lapply(function(x) paste(x, collapse = ", ")) |>
       unlist()
@@ -66,16 +68,35 @@ print("Articles processed.")
 
 scimago <- scimago |>
   dplyr::rowwise() |>
-  dplyr::mutate(areas = paste(dplyr::c_across(tidyselect::starts_with("Areas"))[!is.na(dplyr::c_across(tidyselect::starts_with("Areas")))], collapse=", ")) |>
   dplyr::ungroup() |>
-  dplyr::select(-Sourceid, -Type, -Areas_1, -Areas_2, -Areas_3, -Areas_4, -Areas_5, -Region, -Publisher, -`Total Docs.`, -`Ref. / Doc.`) |>
+  dplyr::select(-Sourceid, -Type, -Areas_1, -Areas_2, -Areas_3, -Areas_4, -Areas_5, -Region, -Publisher, -`Total Docs.`, -`Ref. / Doc.`, -`Cites / Doc. (2years)`, -`SJR Best Quartile`) |>
   dplyr::rename(journal_title = Title)
 
 print("Scimago processed.")
 
-joined <- scimago |>
-  fuzzyjoin::regex_inner_join(articles, by=c(Issn = "issn_linking")) |>
-  dplyr::select(-Issn, -journal)
+webofscience <- webofscience |>
+  dplyr::rowwise() |>
+  dplyr::ungroup() |>
+  dplyr::mutate(
+    issn = paste(webofscience$'Print-ISSN', webofscience$'E-ISSN', sep = ", ")) |>
+  dplyr::filter(`Source Type` == "Journal") |>
+  tidyr::unite("discipline", c(`Top level:\n\nHealth Sciences`, `Top level:\n\nPhysical Sciences`,  `Top level:\n\nSocial Sciences`, `Top level:\n\nLife Sciences`), na.rm = TRUE, sep = ", ") |> 
+  dplyr::mutate(discipline = ifelse(`All Science Journal Classification Codes (ASJC)` == 1000, "multidisciplinary", discipline),
+                discipline = ifelse(grepl(",", discipline), "multidisciplinary", discipline)) |>
+  dplyr::select('Source Title', 'issn', 'Open Access status', 'Source Type', 'All Science Journal Classification Codes (ASJC)', discipline)
+
+print("Web of Science processed.")
+
+joined_scimago <- scimago |>
+  fuzzyjoin::regex_inner_join(articles, by = c(Issn = "issn_linking"))  |>
+  dplyr::select(-Issn, -`Source Type`)
+
+joined_wos <- webofscience |>
+  fuzzyjoin::regex_inner_join(joined_scimago, by = c('issn'= "issn_linking")) |>
+  dplyr::select(-issn, -`Source Type`, -`Source Title`)
+
+joined = joined_wos |> 
+  distinct(title, .keep_all = TRUE)
 
 print("Joined dataframes.")
 print(nrow(joined))
