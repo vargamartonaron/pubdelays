@@ -8,6 +8,7 @@ groundhog.library(packages, "2023-12-02")
 
 # import json and csv data
 
+articles <- read_tsv("D:/University/ELTE/MetaScienceLab/Publication delay/journal_articles_sliced_100k.tsv")
 articles <- jsonlite::fromJSON("/users/usumusu/pubmed_medline_articles.json")
 print(nrow(articles))
 print("JSON parsed into dataframe.")
@@ -15,6 +16,9 @@ scimago <- readr::read_csv("/users/usumusu/scimagojr_2022.csv")
 print("Journal data parsed into dataframe.")
 webofscience = readr::read_csv()
 print("Web of Science parsed into dataframe.")
+doaj = readr::read_csv("https://s3.eu-west-2.amazonaws.com/doaj-data-cache/journalcsv__doaj_20240308_1620_utf8.csv")
+#This only works today, we probably need an offline csv
+print("Directory of Open Access Journals parsed into dataframe.")
 
 covid_synonyms <- c('covid',
                     'covid-19',
@@ -39,6 +43,13 @@ replication_synonyms <- c('replication', 'replicating', 'replication of', 'repli
 replication_pattern <- paste0("\\b(?:", paste(replication_synonyms, collapse = "|"), ")\\b")
 
 # unnest and ensure types
+
+#articles = articles |> 
+  #Cut the first 10000 rows
+  #dplyr::slice(1:10000) |>
+  #tidyr::drop_na(article_date) |>
+  #only preserve years and months from the date variable
+  #dplyr::mutate(article_date_month = paste(lubridate::year(article_date), lubridate::month(article_date),"01", sep = "-"))
 
 articles <- articles |>
   tidyr::unnest(history) |>
@@ -87,17 +98,36 @@ webofscience <- webofscience |>
 
 print("Web of Science processed.")
 
+doaj <- doaj |> 
+  dplyr::select(`Journal ISSN (print version)`, `Journal EISSN (online version)`, `Review process`, `APC`, `APC amount`, `DOAJ Seal`, `Does the journal comply to DOAJ's definition of open access?`) |> 
+  dplyr::mutate(issn = paste(doaj$`Journal ISSN (print version)`, doaj$`Journal EISSN (online version)`, sep = ", ")) |> 
+  dplyr::mutate(issn = stringr::str_replace_all(issn, "-", "")) |> 
+  dplyr::mutate(issn = stringr::str_replace_all(issn, "NA", "")) |> 
+  dplyr::select(-`Journal ISSN (print version)`, -`Journal EISSN (online version)`)
+  
+print("DOAJ processed.")
+  
 joined_scimago <- scimago |>
   fuzzyjoin::regex_inner_join(articles, by = c(Issn = "issn_linking"))  |>
-  dplyr::select(-Issn, -`Source Type`)
+  dplyr::select(-Issn)
+
+print("Scimago joined")
 
 joined_wos <- webofscience |>
-  fuzzyjoin::regex_inner_join(joined_scimago, by = c('issn'= "issn_linking")) |>
+  fuzzyjoin::regex_inner_join(articles, by = c('issn'= "issn_linking")) |>
   dplyr::select(-issn, -`Source Type`, -`Source Title`)
 
-joined = joined_wos |> 
-  distinct(title, .keep_all = TRUE)
+print("Web of Science joined")
 
+joined_doaj <- doaj |>
+  fuzzyjoin::regex_inner_join(articles, by = c(issn = "issn_linking")) |>
+  dplyr::select(-issn)
+#This is not good
+print("DOAJ joined")
+
+joined = joined_doaj |> 
+  distinct(title, .keep_all = TRUE)
+#We have to rewrite this so the name is the same as the last dataset, which contains everything
 print("Joined dataframes.")
 print(nrow(joined))
 
