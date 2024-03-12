@@ -8,16 +8,15 @@ groundhog.library(packages, "2023-12-02")
 
 # import json and csv data
 
-articles <- read_tsv("D:/University/ELTE/MetaScienceLab/Publication delay/journal_articles_sliced_100k.tsv")
+#articles <- read_tsv("D:/University/ELTE/MetaScienceLab/Publication delay/journal_articles_sliced_100k.tsv")
 articles <- jsonlite::fromJSON("/users/usumusu/pubmed_medline_articles.json")
 print(nrow(articles))
 print("JSON parsed into dataframe.")
 scimago <- readr::read_csv("/users/usumusu/scimagojr_2022.csv")
 print("Journal data parsed into dataframe.")
-webofscience = readr::read_csv()
+webofscience <- readr::read_csv("/users/usumusu/ext_list_February_2024.csv")
 print("Web of Science parsed into dataframe.")
-doaj = readr::read_csv("https://s3.eu-west-2.amazonaws.com/doaj-data-cache/journalcsv__doaj_20240308_1620_utf8.csv")
-#This only works today, we probably need an offline csv
+doaj <- readr::read_csv("/users/usumusu/csv")
 print("Directory of Open Access Journals parsed into dataframe.")
 
 covid_synonyms <- c('covid',
@@ -86,17 +85,19 @@ scimago <- scimago |>
 print("Scimago processed.")
 
 webofscience <- webofscience |>
-  dplyr::rowwise() |>
-  dplyr::ungroup() |>
   dplyr::mutate(
     issn = paste(webofscience$'Print-ISSN', webofscience$'E-ISSN', sep = ", ")) |>
   dplyr::filter(`Source Type` == "Journal") |>
-  tidyr::unite("discipline", c(`Top level:\n\nHealth Sciences`, `Top level:\n\nPhysical Sciences`,  `Top level:\n\nSocial Sciences`, `Top level:\n\nLife Sciences`), na.rm = TRUE, sep = ", ") |> 
+  tidyr::unite("discipline",
+	       c(`Top level:\n\nHealth Sciences`,
+		 `Top level:\n\nPhysical Sciences`,  `Top level:\n\nSocial Sciences`, `Top level:\n\nLife Sciences`), na.rm = TRUE, sep = ", ") |> 
   dplyr::mutate(discipline = ifelse(`All Science Journal Classification Codes (ASJC)` == 1000, "multidisciplinary", discipline),
                 discipline = ifelse(grepl(",", discipline), "multidisciplinary", discipline)) |>
+  dplyr::mutate(is_psych = ifelse((3200 <= `All Science Journal Classification Codes (ASJC)`) & (3207 >= `All Science Journal Classification Codes (ASJC)`), TRUE, FALSE)) |>
   dplyr::select('Source Title', 'issn', 'Open Access status', 'Source Type', 'All Science Journal Classification Codes (ASJC)', discipline)
 
-print("Web of Science processed.")
+print("Wos done.") 
+ 
 
 doaj <- doaj |> 
   dplyr::select(`Journal ISSN (print version)`, `Journal EISSN (online version)`, `Review process`, `APC`, `APC amount`, `DOAJ Seal`, `Does the journal comply to DOAJ's definition of open access?`) |> 
@@ -108,7 +109,7 @@ doaj <- doaj |>
 print("DOAJ processed.")
   
 joined_scimago <- scimago |>
-  fuzzyjoin::regex_inner_join(articles, by = c(Issn = "issn_linking"))  |>
+  fuzzyjoin::regex_inner_join(articles, by = c('Issn' = "issn_linking"))  |>
   dplyr::select(-Issn)
 
 print("Scimago joined")
@@ -120,9 +121,9 @@ joined_wos <- webofscience |>
 print("Web of Science joined")
 
 joined_doaj <- doaj |>
-  fuzzyjoin::regex_inner_join(articles, by = c(issn = "issn_linking")) |>
+  fuzzyjoin::regex_left_join(articles, by = c('issn' = "issn_linking")) |>
   dplyr::select(-issn)
-#This is not good
+
 print("DOAJ joined")
 
 joined = joined_doaj |> 
