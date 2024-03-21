@@ -10,8 +10,9 @@ library(lubridate)
 
 # Load data
 articles <- readr::read_tsv(
-  "/home/martonaronvarga/GitHub/pubdelays/Data/journal_articles_sliced_200k.tsv"
+  "/users/usumusu/pubdelays/journal_articles.tsv"
 )
+
 megajournals <- c(
   "24701343", "21583226", "20466390", "20446055", "23251026",
   "22115463", "21601836", "21693536", "20513305", "21678359",
@@ -19,20 +20,25 @@ megajournals <- c(
   "23915447", "22991093", "24058440", "21508925", "2050084X",
   "20461402"
 )
+
 # Aggregate article_date variable to months as new variable
 articles <- articles |>
   dplyr::mutate(
     article_date_month = lubridate::floor_date(as_date(article_date), "month"),
     open_access_status = case_when(
-      `does_the_journal_comply_to_doaj's_definition_of_open_access` == "Yes" ~ TRUE,
-      `does_the_journal_comply_to_doaj's_definition_of_open_access` == "No" ~ FALSE,
-      is.na(`does_the_journal_comply_to_doaj's_definition_of_open_access`) == TRUE ~ FALSE
+      `does_the_journal_comply_to_doaj's_definition_of_open_access?` == "Yes" ~ TRUE,
+      `does_the_journal_comply_to_doaj's_definition_of_open_access?` == "No" ~ FALSE,
+      is.na(`does_the_journal_comply_to_doaj's_definition_of_open_access?`) == TRUE ~ FALSE,
+      TRUE ~ FALSE
     ),
     is_mega = case_when(
       issn_linking %in% megajournals ~ TRUE,
       TRUE ~ FALSE
-    ),
-  )
+    )
+  ) |>
+  dplyr::filter(
+    article_date_month >= lubridate::as_date('2016-01-01') & article_date_month <= lubridate::as_date('2022-12-01')
+    )
 
 # Plot data
 acceptance_data <- articles |>
@@ -43,17 +49,14 @@ acceptance_data <- articles |>
       na.rm = TRUE
     )
   ) |>
-  dplyr::filter(
-    article_date_month >= lubridate::as_date("2016-01-01") &
-      article_date_month <= lubridate::as_date("2023-12-01")
-  ) |>
   tidyr::drop_na(delay) |>
   dplyr::filter(delay <= 700)
 
 acceptance_data_discipline <- articles |>
   dplyr::group_by(
     article_date_month,
-    discipline
+    discipline,
+    is_psych
   ) |>
   dplyr::reframe(
     delay = median(
@@ -78,7 +81,7 @@ acceptance_data_journal <- articles |>
   ) |>
   dplyr::filter(
     article_date_month >= lubridate::as_date("2016-01-01") &
-      article_date_month <= lubridate::as_date("2023-12-01")
+      article_date_month <= lubridate::as_date("2022-12-01")
   ) |>
   tidyr::drop_na(delay)
 
@@ -93,14 +96,22 @@ acceptance_plot <- ggplot(acceptance_data,
     date_breaks = "1 years",
     date_labels = "%Y"
   ) +
+  geom_hline(
+    yintercept = 100,
+    linetype = "dashed",
+    color = "#BF616A",
+    linewidth = 2
+  ) +
   ylim(
     0,
     400
   ) +
   labs(
-    y = "Elfogadási késés mediánja (nap)",
-    x = "Dátum", title = "Elfogadási késés"
-  )
+    y = "Acceptance delay (day)",
+    x = "Date",
+    title = "Acceptance delay"
+  ) +
+  theme_apa(base_family = "Times", base_size = 32)
 
 ggsave(
   "acceptance_plot.pdf",
@@ -133,9 +144,12 @@ acceptance_plot_journal <- ggplot(
     400
   ) +
   labs(
-    y = "Elfogadási késés mediánja (nap)",
-    x = "Dátum", title = "Elfogadási késés"
-  )
+    y = "Acceptance delay median (day)",
+    x = "Date", title = "Acceptance delay"
+  ) +
+  theme_apa(base_family = "Times", base_size = 32)
+
+
 
 ggsave(
   "acceptance_plot_journal.pdf",
@@ -162,7 +176,10 @@ bin_plot <- ggplot(
   ylim(
     0,
     400
-  )
+  ) +
+  theme_apa(base_family = "Times", base_size = 32)
+
+
 
 ggsave(
   "bin_plot.pdf",
@@ -198,7 +215,10 @@ discipline_plot <- ggplot(
   labs(
     y = "Median Acceptance delay (days)",
     x = "Date", title = "Acceptance delay among disciplines"
-  )
+  ) +
+  theme_apa(base_family = "Times", base_size = 32)
+
+
 
 ggsave(
   "discipline_plot.pdf",
@@ -231,10 +251,13 @@ open_access_plot <- ggplot(articles,
     400
   ) +
   labs(
-    y = "Elfogadási késés mediánja (nap)",
-    x = "Dátum",
-    title = "Elfogadási késés Open Access státusz szerint"
-  )
+    y = "Acceptance delay median (day)",
+    x = "Date",
+    title = "Acceptance delay based on Open Access status"
+  ) +
+  theme_apa(base_family = "Times", base_size = 20)
+
+
 
 ggsave(
   "open_access_plot.pdf",
@@ -247,32 +270,24 @@ ggsave(
 
 # psych and other disciplines plot
 is_psychology_plot <- ggplot(
-  articles,
+  acceptance_data_discipline,
   aes(
-    x = as_date(article_date),
-    y = acceptance_delay,
-    # only display where is_psych is TRUE
-    color = is_psych == TRUE
+    x = as_date(article_date_month),
+    y = delay
   )
 ) +
-  geom_smooth(
-    show.legend = TRUE,
-    na.rm = TRUE,
-    span = 3,
-    se = TRUE
+  geom_line(
+    data = dplyr::filter(acceptance_data_discipline, is_psych == TRUE)
   ) +
-  geom_smooth(
-    data = dplyr::filter(articles, is_psych == FALSE),
+  geom_line(
+    data = dplyr::filter(acceptance_data_discipline, is_psych == FALSE),
     aes(
-      x = as_date(article_date),
-      y = acceptance_delay,
+      x = as_date(article_date_month),
+      y = delay,
       color = discipline
-    ),
-    show.legend = TRUE,
-    na.rm = TRUE,
-    span = 3,
-    se = TRUE
+    )
   ) +
+  geom_point() +
   scale_x_date(
     date_breaks = "1 years",
     date_labels = "%Y"
@@ -282,10 +297,13 @@ is_psychology_plot <- ggplot(
     400
   ) +
   labs(
-    y = "Elfogadási késés mediánja (nap)",
-    x = "Dátum",
-    title = "Elfogadási késés Pszichológiai és nem pszichológiai folyóiratokban"
-  )
+    y = "Acceptance delay median (day)",
+    x = "Date",
+    title = "Acceptance delay in psychological and other journals"
+  ) +
+  theme_apa(base_family = "Times", base_size = 20)
+
+
 
 ggsave(
   "is_psychology_plot.pdf",
@@ -295,23 +313,23 @@ ggsave(
   height = 9,
   units = "in"
 )
+all_mega_data <- articles |>
+  dplyr::group_by(article_date_month, is_mega) |>
+  dplyr::reframe(delay = median(acceptance_delay, na.rm = TRUE))
+print(all_mega_data)
 
 # mega journal plot
-megjournal_plot <- ggplot(
-  articles,
+megajournal_plot <- ggplot(
+  all_mega_data,
   aes(
-    x = as_date(article_date),
-    y = acceptance_delay,
-    # only display where is_mega is TRUE
-    color = is_mega == TRUE
+    x = as_date(article_date_month),
+    y = delay,
+    color = is_mega
   )
 ) +
-  geom_smooth(
-    show.legend = TRUE,
-    na.rm = TRUE,
-    span = 3,
-    se = TRUE
+  geom_line(
   ) +
+  geom_point() +
   scale_x_date(
     date_breaks = "1 years",
     date_labels = "%Y"
@@ -321,13 +339,60 @@ megjournal_plot <- ggplot(
     400
   ) +
   labs(
-    y = "Elfogadási késés mediánja (nap)",
-    x = "Dátum",
-    title = "Elfogadási késés megajournalokban"
-  )
+    y = "Acceptance delay median (day)",
+    x = "Date",
+    title = "Acceptance delay in mega-journals"
+  ) +
+  theme_apa(base_family = "Times", base_size = 20)
+
+
 
 ggsave(
-  "megjournal_plot.pdf",
+  "megajournal_plot.pdf",
+  scale = 0.9,
+  dpi = 200,
+  width = 16,
+  height = 9,
+  units = "in"
+)
+megajournal_data <- articles |>
+  dplyr::filter(
+    is_mega == TRUE
+  ) |>
+  dplyr::group_by(journal_title, article_date_month) |>
+  dplyr::reframe(delay = median(acceptance_delay))
+
+# only the megajorunals
+megajournal_plot_2 <- ggplot(
+  megajournal_data,
+  aes(
+    x = as_date(article_date_month),
+    y = delay,
+    color = journal_title
+  )
+) +
+  geom_line(
+  ) +
+  geom_point() +
+  scale_x_date(
+    date_breaks = "1 years",
+    date_labels = "%Y"
+  ) +
+  ylim(
+    0,
+    400
+  ) +
+  labs(
+    y = "Acceptance delay median (day)",
+    x = "Date",
+    title = "Acceptance delay in mega-journals"
+  ) +
+  theme_apa(base_family = "Times", base_size = 20)
+
+
+
+ggsave(
+  "megajournal_plot_2.pdf",
   scale = 0.9,
   dpi = 200,
   width = 16,
@@ -384,7 +449,19 @@ quantile_plot <- ggplot(
     y = "Elfogadási késés mediánja (nap)",
     x = "Dátum",
     title = "Elfogadási késés kvantilise"
-  )
+  ) +
+  theme_apa(base_family = "Times", base_size = 32)
+
+
+
+ ggsave(
+  "quantile_plot.pdf",
+  scale = 0.9,
+  dpi = 200,
+  width = 16,
+  height = 9,
+  units = "in"
+)
 
 
 
