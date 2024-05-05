@@ -1,26 +1,28 @@
-import re
 import json
+import re
 
-def escape_single_quotes_in_value_pairs(line):
-    # Regular expression to match single quotes within value pairs
-    pattern = r'(?<=\{)([^"]*"(?:\\.|[^"\\])*"([^"]*)\})'
-    # Replace single quotes with escaped single quotes
-    return re.sub(pattern, r'\1"\2"', line)
-
-def replace_single_quotes_with_double_quotes(line):
-    # Escape single quotes in value pairs
-    escaped_line = escape_single_quotes_in_value_pairs(line)
-    # Replace single quotes with double quotes
-    return escaped_line.replace("'", '"')
-
-def process_json_file(input_file, output_file):
-    with open(input_file, 'r') as file:
-        lines = file.readlines()
+def correct_missing_quotes(json_string):
+    # Define a function to add missing single quotes
+    def add_missing_quotes(match):
+        # Extract the value and add a single quote if missing
+        value = match.group(1)
+        if value.endswith('"') and not value.endswith("'"):
+            return f'"{value}\'"'
+        return value
     
-    corrected_lines = [replace_single_quotes_with_double_quotes(line) for line in lines]
-    
-    with open(output_file, 'w') as file:
-        file.writelines(corrected_lines)
+    # Use a regular expression to find values within quotes
+    corrected_json_string = re.sub(r'"([^"]*)"([^"]*)"', add_missing_quotes, json_string)
+    return corrected_json_string
 
-# Example usage
-process_json_file('/users/usumusu/pubmed_medline_articles_aff.json', '/users/usumusu/pubmed_medline_articles_aff.json')
+# Read the original JSON file
+with open('/users/usumusu/pubmed_medline_articles_aff.json', 'r') as file:
+    original_json = file.read()
+
+# Correct the JSON string
+corrected_json = correct_missing_quotes(original_json)
+
+# Write the corrected JSON back to a file
+with open('/users/usumusu/pubmed_medline_articles_aff.json', 'w') as file:
+    file.write(corrected_json)
+
+print("JSON file has been corrected.")
