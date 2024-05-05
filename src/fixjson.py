@@ -24,3 +24,4 @@ corrected_lines = [correctDoubleQuoteJSON(line) for line in lines]
 
 with open('/users/usumusu/pubmed_medline_articles_aff.json', 'w') as file:
     file.writelines(corrected_lines)
+    print("done!")
