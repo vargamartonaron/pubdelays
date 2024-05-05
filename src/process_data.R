@@ -1,4 +1,4 @@
-setwd("~/pubdelays")
+#setwd("~/pubdelays")
 library(groundhog)
 # using groundhog for the sake of reproducibility, info at https://groundhogr.com/
 
@@ -8,15 +8,15 @@ groundhog.library(packages, "2023-12-02")
 
 # import json and csv data
 
-articles <- read_tsv("D:/University/ELTE/MetaScienceLab/Publication delay/journal_articles_sliced_100k.tsv")
-articles <- jsonlite::fromJSON("/users/usumusu/pubmed_medline_articles.json")
+#articles <- read_tsv("/home/martonaronvarga/GitHub/pubdelays/Data/journal_articles_sliced_100k.tsv")
+#articles <- jsonlite::fromJSON("/users/usumusu/pubmed_medline_articles.json")
 print(nrow(articles))
 print("JSON parsed into dataframe.")
-scimago <- readr::read_csv("/users/usumusu/scimagojr_2022.csv")
+scimago <- readr::read_csv("/home/martonaronvarga/GitHub/pubdelays/Data/scimagojr_2022.csv")
 print("Journal data parsed into dataframe.")
-webofscience = readr::read_csv()
+webofscience = readr::read_csv("/home/martonaronvarga/GitHub/pubdelays/Data/ext_list_February_2024.csv")
 print("Web of Science parsed into dataframe.")
-doaj = readr::read_csv("https://s3.eu-west-2.amazonaws.com/doaj-data-cache/journalcsv__doaj_20240308_1620_utf8.csv")
+doaj = readr::read_csv("https://s3.eu-west-2.amazonaws.com/doaj-data-cache/journalcsv__doaj_20240310_1720_utf8.csv")
 #This only works today, we probably need an offline csv
 print("Directory of Open Access Journals parsed into dataframe.")
 
@@ -120,7 +120,7 @@ joined_wos <- webofscience |>
 print("Web of Science joined")
 
 joined_doaj <- doaj |>
-  fuzzyjoin::regex_inner_join(articles, by = c(issn = "issn_linking")) |>
+  fuzzyjoin::regex_inner_join(articles, by = c('issn' = "issn_linking")) |>
   dplyr::select(-issn)
 #This is not good
 print("DOAJ joined")
