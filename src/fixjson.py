@@ -1,5 +1,5 @@
+import json
 
-<<<<<<< Updated upstream
 def fix_json_line(line):
     try:
         # Parse the JSON string
@@ -41,5 +41,3 @@ fixed_lines = [fix_json_line(line) for line in lines]
 
 with open('/users/usumusu/pubmed_medline_articles_aff.json', 'w') as file:
     file.writelines(fixed_lines)
-=======
->>>>>>> Stashed changes
