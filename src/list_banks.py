@@ -1,6 +1,6 @@
 import json
 
-json_data = '/home/martonaronvarga/GitHub/pubdelays/Data/pubmed_medline_articles_aff.json'
+json_data = '/users/usumusu/pubmed_medline_articles_aff.json'
 
 # Load the JSON data
 with open(json_data, 'r') as file:
