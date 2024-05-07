@@ -6,8 +6,11 @@ json_data = '/users/usumusu/pubmed_medline_articles_aff.json'
 with open(json_data, 'r') as file:
     data = json.load(file)
 
-# Extract affiliations
-affiliations = data.get('affiliations', [])
+# Iterate through JSON and get authors: [{x:, y:, affiliations:}]
+for record in data:
+    authors = record.get('authors', [])
+    for author in authors:
+        affiliations = data.get('affiliations', [])
 
 # Find matches containing "Bank" or "bank"
 matches = set()
