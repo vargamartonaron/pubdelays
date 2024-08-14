@@ -15,6 +15,13 @@ megajournals <- c(
   "20461402"
 )
 
+quantiles <- quantile(original_data$acceptance_delay, probs = c(0.01, 0.99))
+
+
+print(quantiles)
+
+stop("1% found")
+
 data = original_data |> 
   dplyr::mutate(article_date = floor_date(as_date(article_date)), "month") |> 
   dplyr::mutate(received = floor_date(as_date(article_date)), "month") |> 
