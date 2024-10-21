@@ -1,7 +1,26 @@
+setwd("~/pubdelays")
+
 library(readr)
+library(dplyr)
+
+articles <- readr::read_tsv("journal_articles_everything.tsv")
+
+clean_data = unique(articles, by = "title")
+
+set.seed(553)  # You can choose any seed value
+
+# Sample 70 random rows
+sampled_data <- clean_data %>% sample_n(70)
+
+# Write the sampled data to a separate file
+write.csv(sampled_data, "sampled_data.csv", row.names = FALSE)
+
+stop("temporary")
+
+
 library(ggplot2)
 library(papaja)
-library(dplyr)
+
 library(tidyr)
 library(extrafont)
 library(viridis)
@@ -15,7 +34,8 @@ setwd('~/pubdelays')
 #loadfonts()
 
 
-articles <- readr::read_tsv('/users/usumusu/pubdelays/journal_articles.tsv')
+
+
 #articles <- read_tsv('/home/martonaronvarga/GitHub/ppk_expcourse/journal_articles.tsv')
 
 acceptance_data <- articles |>
