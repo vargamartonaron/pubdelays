@@ -1,1 +1,7 @@
-Data/
+/users/
+filtered_articles.tsv
+journal_articles_everything.tsv
+journal_articles_pubmed.tsv
+journal_articles_pubmed_scimago.tsv
+journal_articles_pubmed_scimago_wos.tsv
+journal_articles_pubmed_scimago_wos_doaj.tsv
