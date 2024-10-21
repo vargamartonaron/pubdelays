@@ -93,7 +93,7 @@ if __name__ == "__main__":
     path_xml_list = pp.list_xml_path(xml_dir)
 
     # Path to output JSON
-    json_file_path = '/home/martonaronvarga/GitHub/pubdelays/Data/pubmed_medline_articles_aff.json'
+    json_file_path = '/home/martonaronvarga/GitHub/pubdelays/Data/pubmed_medline_articles.json'
     
     # Path to progress file
     progress_file = '/home/martonaronvarga/GitHub/pubdelays/Data/progress.txt'

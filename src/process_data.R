@@ -1,34 +1,21 @@
-#setwd("~/pubdelays")
+setwd("~/pubdelays")
 library(groundhog)
 # using groundhog for the sake of reproducibility, info at https://groundhogr.com/
 
-packages <- c("dplyr", "jsonlite", "fuzzyjoin", "tidyr", "readr", "lubridate", "stringr")
+#packages <- c("dplyr", "jsonlite", "fuzzyjoin", "tidyr", "readr", "lubridate", "stringr")
 
-groundhog.library(packages, "2023-12-02")
-
+#groundhog.library(packages, "2023-12-02")
 # import json and csv data
 
-<<<<<<< HEAD
-#articles <- read_tsv("/home/martonaronvarga/GitHub/pubdelays/Data/journal_articles_sliced_100k.tsv")
-#articles <- jsonlite::fromJSON("/users/usumusu/pubmed_medline_articles.json")
-=======
 #articles <- read_tsv("D:/University/ELTE/MetaScienceLab/Publication delay/journal_articles_sliced_100k.tsv")
-articles <- jsonlite::fromJSON("/users/usumusu/pubmed_medline_articles.json")
->>>>>>> be38f25ba4bdccfc49a4e4715ddb1ecfd0f848c0
+articles <- jsonlite::fromJSON("/users/zsimi/pubmed_medline_articles.json")
 print(nrow(articles))
 print("JSON parsed into dataframe.")
-scimago <- readr::read_csv("/home/martonaronvarga/GitHub/pubdelays/Data/scimagojr_2022.csv")
+scimago <- readr::read_csv("/users/zsimi/scimagojr_2022.csv")
 print("Journal data parsed into dataframe.")
-<<<<<<< HEAD
-webofscience = readr::read_csv("/home/martonaronvarga/GitHub/pubdelays/Data/ext_list_February_2024.csv")
+webofscience <- readr::read_csv("/users/zsimi/ext_list_February_2024.csv")
 print("Web of Science parsed into dataframe.")
-doaj = readr::read_csv("https://s3.eu-west-2.amazonaws.com/doaj-data-cache/journalcsv__doaj_20240310_1720_utf8.csv")
-#This only works today, we probably need an offline csv
-=======
-webofscience <- readr::read_csv("/users/usumusu/ext_list_February_2024.csv")
-print("Web of Science parsed into dataframe.")
-doaj <- readr::read_csv("/users/usumusu/csv")
->>>>>>> be38f25ba4bdccfc49a4e4715ddb1ecfd0f848c0
+doaj <- readr::read_csv("/users/zsimi/doaj.csv")
 print("Directory of Open Access Journals parsed into dataframe.")
 
 covid_synonyms <- c('covid',
@@ -101,9 +88,9 @@ webofscience <- webofscience |>
     issn = paste(webofscience$'Print-ISSN', webofscience$'E-ISSN', sep = ", ")) |>
   dplyr::filter(`Source Type` == "Journal") |>
   tidyr::unite("discipline",
-	       c(`Top level:\n\nHealth Sciences`,
+	      c(`Top level:\n\nHealth Sciences`,
 		 `Top level:\n\nPhysical Sciences`,  `Top level:\n\nSocial Sciences`, `Top level:\n\nLife Sciences`), na.rm = TRUE, sep = ", ") |> 
-  dplyr::mutate(discipline = ifelse(`All Science Journal Classification Codes (ASJC)` == 1000, "multidisciplinary", discipline),
+dplyr::mutate(discipline = ifelse(`All Science Journal Classification Codes (ASJC)` == 1000, "multidisciplinary", discipline),
                 discipline = ifelse(grepl(",", discipline), "multidisciplinary", discipline)) |>
   dplyr::mutate(is_psych = ifelse((3200 <= `All Science Journal Classification Codes (ASJC)`) & (3207 >= `All Science Journal Classification Codes (ASJC)`), TRUE, FALSE)) |>
   dplyr::select('Source Title', 'issn', 'Open Access status', 'Source Type', 'All Science Journal Classification Codes (ASJC)', discipline)
@@ -111,44 +98,85 @@ webofscience <- webofscience |>
 print("Wos done.") 
  
 
+#doaj <- doaj |> 
+ # dplyr::select(`Journal ISSN (print version)`, `Journal EISSN (online version)`, `Review process`, `APC`, `APC amount`, `DOAJ Seal`, `Does the journal comply to DOAJ's definition of open access?`) |> 
+#  dplyr::mutate(issn = paste(doaj$`Journal ISSN (print version)`, doaj$`Journal EISSN (online version)`, sep = ", ")) |> 
+#  dplyr::mutate(issn = stringr::str_replace_all(issn, "-", "")) |> 
+#  dplyr::mutate(issn = stringr::str_replace_all(issn, "NA", "")) |> 
+#  dplyr::select(-`Journal ISSN (print version)`, -`Journal EISSN (online version)`)
+
 doaj <- doaj |> 
   dplyr::select(`Journal ISSN (print version)`, `Journal EISSN (online version)`, `Review process`, `APC`, `APC amount`, `DOAJ Seal`, `Does the journal comply to DOAJ's definition of open access?`) |> 
-  dplyr::mutate(issn = paste(doaj$`Journal ISSN (print version)`, doaj$`Journal EISSN (online version)`, sep = ", ")) |> 
+  dplyr::mutate(issn = paste(`Journal ISSN (print version)`, `Journal EISSN (online version)`, sep = ", ")) |> 
   dplyr::mutate(issn = stringr::str_replace_all(issn, "-", "")) |> 
   dplyr::mutate(issn = stringr::str_replace_all(issn, "NA", "")) |> 
+  dplyr::mutate(issn = ifelse(startsWith(issn, ", "), substr(issn, 3, nchar(issn)), issn)) |> 
   dplyr::select(-`Journal ISSN (print version)`, -`Journal EISSN (online version)`)
+
   
 print("DOAJ processed.")
+#warnings()
   
 joined_scimago <- scimago |>
-  fuzzyjoin::regex_inner_join(articles, by = c('Issn' = "issn_linking"))  |>
+ fuzzyjoin::regex_inner_join(articles, by = c('Issn' = "issn_linking"))  |>
   dplyr::select(-Issn)
 
 print("Scimago joined")
 
 joined_wos <- webofscience |>
-  fuzzyjoin::regex_inner_join(articles, by = c('issn'= "issn_linking")) |>
+  fuzzyjoin::regex_inner_join(joined_scimago, by = c('issn'= "issn_linking")) |>
   dplyr::select(-issn, -`Source Type`, -`Source Title`)
 
 print("Web of Science joined")
 
 joined_doaj <- doaj |>
-<<<<<<< HEAD
-  fuzzyjoin::regex_inner_join(articles, by = c('issn' = "issn_linking")) |>
-=======
-  fuzzyjoin::regex_left_join(articles, by = c('issn' = "issn_linking")) |>
->>>>>>> be38f25ba4bdccfc49a4e4715ddb1ecfd0f848c0
+  fuzzyjoin::regex_inner_join(joined_wos, by = c('issn' = "issn_linking")) |>
   dplyr::select(-issn)
 
-print("DOAJ joined")
 
-joined = joined_doaj |> 
-  distinct(title, .keep_all = TRUE)
-#We have to rewrite this so the name is the same as the last dataset, which contains everything
-print("Joined dataframes.")
-print(nrow(joined))
+print(nrow(articles))
+print(nrow(joined_scimago))
+print(nrow(joined_wos))
+print(nrow(joined_doaj))
+names(joined_doaj) = gsub(" ", "_", tolower(names(joined_doaj)))
 
-names(joined) <- gsub(" ", "_", tolower(names(joined)))
 
-print("Writing to tsv.")
-readr::write_tsv(joined, "journal_articles.tsv")
+megajournals <- c(
+  "24701343", "21583226", "20466390", "20446055", "23251026",
+  "22115463", "21601836", "21693536", "20513305", "21678359",
+  "19326203", "20545703", "21582440", "20452322", "20566700",
+  "23915447", "22991093", "24058440", "21508925", "2050084X",
+  "20461402"
+)
+
+quantiles <- quantile(original_data$acceptance_delay, probs = c(0.01, 0.99))
+print(quantiles)
+
+original_data = joined_doaj
+
+data = original_data |> 
+  dplyr::mutate(article_date = floor_date(as_date(article_date)), "month") |> 
+  dplyr::mutate(received = floor_date(as_date(article_date)), "month") |> 
+  dplyr::filter(received >= "2016-01-01" & received <= "2023-06-01") |>
+  dplyr::filter(article_date >= "2016-01-01" & article_date <= "2023-06-01") |> 
+  dplyr::filter(!is.na(article_date) & !is.na(acceptance_delay)) |> 
+  dplyr::filter(acceptance_delay <= 700 & acceptance_delay >= 10) |> 
+  dplyr::mutate(is_psych = ifelse(((3200 <= `all_science_journal_classification_codes_(asjc)`) & (3207 >= `all_science_journal_classification_codes_(asjc)`)), TRUE, FALSE),
+                covid_time = if_else(article_date < as.Date("2019-12-01"), "Before", "After"),
+                is_mega = case_when(
+                  issn %in% megajournals ~ TRUE,
+                  TRUE ~ FALSE
+                ))|> 
+  dplyr::mutate(article_date = as_date(article_date)) |> 
+  dplyr::mutate(received = as_date(received)) |> 
+  dplyr::select(is_covid, received, article_date, acceptance_delay, is_psych, covid_time, is_mega, issn, h_index, publication_delay, "does_the_journal_comply_to_doaj's_definition_of_open_access?", title, journal_title, sjr, rank, discipline, doaj_seal, "all_science_journal_classification_codes_(asjc)") |> 
+  dplyr::distinct()
+
+print("data filtered")
+
+class(data$article_date)
+head(data$article_date)
+
+readr::write_tsv(data, "filtered_articles.tsv")
+
+stop("Analysis done")
