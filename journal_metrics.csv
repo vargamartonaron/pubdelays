@@ -1,0 +1,152 @@
+﻿journal_title,acceptance_delay,publication_delay,calculation,source,date,in_pubmed_filtered
+Journal of Organometallic Chemistry,68,2,median,sciencedirect,all,FALSE
+AI Open,53,6,median,sciencedirect,all,FALSE
+Water Research,104,2,median,sciencedirect,all,FALSE
+Journal of Anxiety Disorders,210,3,median,sciencedirect,all,FALSE
+PloS ONE,121,22,NA,academic_accelarator,NA,TRUE
+ACS Nano,49,7,NA,academic_accelarator,NA,FALSE
+Open Biology,101,34,median,royalsociety,2023,TRUE
+Proceedings B,73,28,median,royalsociety,2023,FALSE
+Biology Letters,81,31,median,royalsociety,2023,FALSE
+Interface,105,24,median,royalsociety,2023,FALSE
+Proceedings A,130,32,median,royalsociety,2023,FALSE
+Royal Society Open Science,123,25,median,royalsociety,2023,TRUE
+Scientific Reports,140,NA,median,nature,2023,TRUE
+Nature,268,NA,median,nature,2023,FALSE
+Acta Histochemica,96,9,median,sciencedirect,all,FALSE
+Actas Urológicas Españolas,56,NA,median,sciencedirect,all,FALSE
+Behavioural Brain Research,100,2,median,sciencedirect,all,FALSE
+Journal of Inorganic Biochemistry,67,4,median,sciencedirect,all,FALSE
+Case Studies on Transport Policy,203,4,median,sciencedirect,all,FALSE
+Data & Knowledge Engineering,272,6,median,sciencedirect,all,FALSE
+Diabetes Epidemiology and Management,14,3,median,sciencedirect,all,FALSE
+eClinicalMedicine,86,22,median,sciencedirect,all,TRUE
+Economics & Human Biology,209,4,median,sciencedirect,all,FALSE
+Fisioterapia,153,NA,median,sciencedirect,all,FALSE
+"Foot & Ankle Surgery: Techniques, Reports & Cases",57,4,median,sciencedirect,all,FALSE
+Gait & Posture,209,2,median,sciencedirect,all,FALSE
+General and Comparative Endocrinology,110,3,median,sciencedirect,all,FALSE
+Graphical Models,203,19,median,sciencedirect,all,FALSE
+Health Policy,266,3,median,sciencedirect,all,FALSE
+Hepatobiliary & Pancreatic Diseases International,151,16,median,sciencedirect,all,FALSE
+HPB,128,8,median,sciencedirect,all,FALSE
+Icarus,116,4,median,sciencedirect,all,TRUE
+IBRO Neuroscience Reports,114,4,median,sciencedirect,all,TRUE
+IATSS Research,227,5,median,sciencedirect,all,FALSE
+JCIS Open,101,2,median,sciencedirect,all,FALSE
+Journal of Accounting and Economics,576,9,median,sciencedirect,all,FALSE
+Journal of Agriculture and Food Research,97,3,median,sciencedirect,all,TRUE
+Kidney International,30,NA,median,sciencedirect,all,FALSE
+La Presse Médicale Open,139,12,median,sciencedirect,all,FALSE
+Land Use Policy,386,12,median,sciencedirect,all,FALSE
+Materials Today Communications,72,2,median,sciencedirect,all,FALSE
+Nature-Based Solutions,160,3,median,sciencedirect,all,FALSE
+Neurobiology of Pain,68,3,median,sciencedirect,all,TRUE
+Obesity Medicine,77,5,median,sciencedirect,all,FALSE
+Particuology,77,NA,median,sciencedirect,all,FALSE
+Pathology - Research and Practice,50,3,median,sciencedirect,all,FALSE
+Safety and Health at Work,139,8,median,sciencedirect,all,TRUE
+Vaccine,120,9,median,sciencedirect,all,TRUE
+The Veterinary Journal,228,2,median,sciencedirect,all,FALSE
+AACE Clinical Case Reports,96,6,median,sciencedirect,all,TRUE
+Advances in Radiation Oncology,99,NA,median,sciencedirect,all,TRUE
+Biomedical Journal,148,7,median,sciencedirect,all,TRUE
+Cancer Treatment and Research Communications,69,3,median,sciencedirect,all,TRUE
+Data in Brief,72,6,median,sciencedirect,all,TRUE
+Developmental Cognitive Neuroscience,176,2,median,sciencedirect,all,TRUE
+Future Foods,96,2,median,sciencedirect,all,TRUE
+Genomics,126,3,median,sciencedirect,all,TRUE
+"Genomics, Proteomics & Bioinformatics",296,NA,median,sciencedirect,all,TRUE
+Health Policy OPEN,207,7,median,sciencedirect,all,TRUE
+Infectious Disease Modelling,104,6,median,sciencedirect,all,TRUE
+International Dental Journal,74,NA,median,sciencedirect,all,TRUE
+Journal of Agriculture and Food Research,97,3,median,sciencedirect,all,TRUE
+Journal of Clinical Tuberculosis and Other Mycobacterial Diseases,128,3,median,sciencedirect,all,TRUE
+Kidney Medicine,111,NA,median,sciencedirect,all,TRUE
+Kidney International Reports,58,12,median,sciencedirect,all,TRUE
+LWT,111,2,median,sciencedirect,all,TRUE
+Leukemia Research Reports,98,2,median,sciencedirect,all,TRUE
+Neurobiology of Disease,83,2,median,sciencedirect,all,TRUE
+One Health,113,3,median,sciencedirect,all,TRUE
+Oral and Maxillofacial Surgery Cases,48,7,median,sciencedirect,all,TRUE
+Parasite Epidemiology and Control,195,4,median,sciencedirect,all,TRUE
+Results in Chemistry,50,3,median,sciencedirect,all,TRUE
+Results in Engineering,75,4,median,sciencedirect,all,TRUE
+Safety and Health at Work,139,8,median,sciencedirect,all,TRUE
+Schizophrenia Research: Cognition,92,6,median,sciencedirect,all,TRUE
+Talanta Open,81,2,median,sciencedirect,all,TRUE
+Ultrasonics Sonochemistry,68,3,median,sciencedirect,all,TRUE
+Vaccine: X,160,3,median,sciencedirect,all,TRUE
+Visual Informatics,138,11,median,sciencedirect,all,TRUE
+World Allergy Organization Journal,152,NA,median,sciencedirect,all,TRUE
+World Neurosurgery: X,165,8,median,sciencedirect,all,TRUE
+Nature Aging,177,NA,median,nature,2023,
+Nature Astronomy,147,NA,median,nature,2023,
+Nature Biomedical Engineering,316,NA,median,nature,2023,
+Nature Biotechnology,183,NA,median,nature,2023,
+Nature Cancer,208,NA,median,nature,2023,
+Nature Cardiovascular Research,137,NA,median,nature,2023,
+Nature Catalysis,228,NA,median,nature,2023,
+Nature Cell Biology,160,NA,median,nature,2023,
+Nature Chemical Biology,219,NA,median,nature,2023,
+Nature Chemistry,273,NA,median,nature,2023,
+Nature Climate Change,177,NA,median,nature,2023,
+Nature Communications,223,NA,median,nature,2023,
+Nature Computational Science,111,NA,median,nature,2023,
+Nature Ecology & Evolution,163,NA,median,nature,2023,
+Nature Electronics,258,NA,median,nature,2023,
+Nature Energy,164,NA,median,nature,2023,
+Nature Food,140,NA,median,nature,2023,
+Nature Genetics,269,NA,median,nature,2023,
+Nature Geoscience,231,NA,median,nature,2023,
+Nature Human Behaviour,200,NA,median,nature,2023,
+Nature Immunology,129,NA,median,nature,2023,
+Nature Machine Intelligence,226,NA,median,nature,2023,
+Nature Materials,202,NA,median,nature,2023,
+Nature Medicine,103,NA,median,nature,2023,
+Nature Metabolism,164,NA,median,nature,2023,
+Nature Methods,231,NA,median,nature,2023,
+Nature Microbiology,198,NA,median,nature,2023,
+Nature Nanotechnology,186,NA,median,nature,2023,
+Nature Neuroscience,345,NA,median,nature,2023,
+Nature Photonics,176,NA,median,nature,2023,
+Nature Physics,188,NA,median,nature,2023,
+Nature Plants,168,NA,median,nature,2023,
+Nature Protocols,197,NA,median,nature,2023,
+Nature Structural & Molecular Biology,244,NA,median,nature,2023,
+Nature Sustainability,191,NA,median,nature,2023,
+Nature Synthesis,135,NA,median,nature,2023,
+Communications Biology,203,NA,median,nature,2023,
+Communications Chemistry,131,NA,median,nature,2023,
+Communications Earth & Environment,199,NA,median,nature,2023,
+Communications Materials,165,NA,median,nature,2023,
+Communications Medicine,218,NA,median,nature,2023,
+Communications Physics,175,NA,median,nature,2023,
+Lab Animal,,NA,median,nature,2023,
+NPG Asia Materials,137,NA,median,nature,2023,
+npj 2D Materials and Applications,190,NA,median,nature,2023,
+npj Aging,165,NA,median,nature,2023,
+npj Biofilms and Microbiomes,170,NA,median,nature,2023,
+npj Breast Cancer,198,NA,median,nature,2023,
+npj Clean Water,181,NA,median,nature,2023,
+npj Climate and Atmospheric Science,174,NA,median,nature,2023,
+npj Computational Materials,181,NA,median,nature,2023,
+npj Digital Medicine,160,NA,median,nature,2023,
+npj Flexible Electronics,132,NA,median,nature,2023,
+npj Genomic Medicine,155,NA,median,nature,2023,
+npj Materials Degradation,131,NA,median,nature,2023,
+npj Microgravity,236,NA,median,nature,2023,
+npj Parkinson's Disease,178,NA,median,nature,2023,
+npj Precision Oncology,171,NA,median,nature,2023,
+npj Primary Care Respiratory Medicine,166,NA,median,nature,2023,
+npj Quantum Information,192,NA,median,nature,2023,
+npj Quantum Materials,149,NA,median,nature,2023,
+npj Regenerative Medicine,237,NA,median,nature,2023,
+npj Science of Food,163,NA,median,nature,2023,
+npj Science of Learning,273,NA,median,nature,2023,
+npj Systems Biology and Applications,168,NA,median,nature,2023,
+npj Urban Sustainability,174,NA,median,nature,2023,
+npj Vaccines,167,NA,median,nature,2023,
+Scientific Data,159,NA,median,nature,2023,
+Animal Cells and Systems,NA,11,average,taylor_francis,all,
+Canadian Journal of Pain,NA,69,average,taylor_francis,all,

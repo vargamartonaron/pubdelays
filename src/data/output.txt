@@ -1,0 +1,116 @@
+/var/lib/slurm-llnl/slurmd/job2230032/slurm_script: line 11: module: command not found
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: ‘lubridate’
+
+The following objects are masked from ‘package:base’:
+
+    date, intersect, setdiff, union
+
+[1] 9226215
+[1] "JSON parsed into dataframe."
+Rows: 27955 Columns: 22
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (14): Title, Type, Issn, SJR, SJR Best Quartile, Cites / Doc. (2years), ...
+dbl  (8): Rank, Sourceid, H index, Total Docs., Total Docs. (3years), Total ...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+[1] "Journal data parsed into dataframe."
+Rows: 45190 Columns: 52
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (51): Source Title, Print-ISSN, E-ISSN, Active or Inactive, Coverage, Ti...
+dbl  (1): Sourcerecord ID
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+[1] "Web of Science parsed into dataframe."
+Rows: 20435 Columns: 54
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr  (48): Journal title, Journal URL, URL in DOAJ, Alternative title, Journ...
+dbl   (3): When did the journal start to publish all content using an open l...
+dttm  (3): Added on Date, Last updated Date, Most Recent Article Added
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+[1] "Directory of Open Access Journals parsed into dataframe."
+Warning message:
+There were 3 warnings in `mutate()`.
+The first warning was:
+ℹ In argument: `received = (new("standardGeneric", .Data = function (x, ...)
+  ...`.
+Caused by warning:
+!  4 failed to parse.
+ℹ Run `dplyr::last_dplyr_warnings()` to see the 2 remaining warnings. 
+[1] "Articles processed."
+[1] "Scimago processed."
+[1] "Wos processed."
+[1] "DOAJ processed."
+There were 50 or more warnings (use warnings() to see the first 50)
+[1] "Scimago joined"
+[1] "Web of Science joined"
+[1] "Directory of Open Access joined"
+[1] "There are 10000 articles without linking with outher datasets."
+[1] 10000
+[1] "There are 9324 articles with scimago."
+[1] 9324
+[1] "There are 9323 articles with scimago and Web of Science."
+[1] 9323
+[1] "There are 4127 articles with scimago, Web of Science, and DOAJ."
+[1] 4127
+ [1] "review_process"                                              
+ [2] "apc"                                                         
+ [3] "apc_amount"                                                  
+ [4] "doaj_seal"                                                   
+ [5] "does_the_journal_comply_to_doaj's_definition_of_open_access?"
+ [6] "open_access_status"                                          
+ [7] "all_science_journal_classification_codes_(asjc)"             
+ [8] "discipline"                                                  
+ [9] "rank"                                                        
+[10] "journal_title"                                               
+[11] "sjr"                                                         
+[12] "h_index"                                                     
+[13] "total_docs._(3years)"                                        
+[14] "total_refs."                                                 
+[15] "total_cites_(3years)"                                        
+[16] "citable_docs._(3years)"                                      
+[17] "title"                                                       
+[18] "journal"                                                     
+[19] "pubdate"                                                     
+[20] "article_date"                                                
+[21] "received"                                                    
+[22] "revised"                                                     
+[23] "accepted"                                                    
+[24] "pubmed"                                                      
+[25] "medline"                                                     
+[26] "entrez"                                                      
+[27] "pmid"                                                        
+[28] "publication_types"                                           
+[29] "keywords"                                                    
+[30] "issn_linking"                                                
+[31] "acceptance_delay"                                            
+[32] "publication_delay"                                           
+[33] "\"month\""                                                   
+[34] "is_covid"                                                    
+[35] "is_replication"                                              
+[1] "data filtered"
+[1] "Date"
+[1] "2019-03-21" "2021-11-03" "2020-02-06" "2022-10-19" "2020-02-26"
+[6] "2021-10-14"
+Error: Analysis done
+Execution halted
+Warning message:
+system call failed: Cannot allocate memory 
