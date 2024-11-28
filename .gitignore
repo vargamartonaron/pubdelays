@@ -1,14 +1,10 @@
 /users/
 filtered_articles.tsv
-journal_articles_everything.tsv
-journal_articles_pubmed.tsv
-journal_articles_pubmed_scimago.tsv
-journal_articles_pubmed_scimago_wos.tsv
-journal_articles_pubmed_scimago_wos_doaj.tsv
 /src/.RData
 /src/.Rhistory
 /src/.bashrc
-articles_raw.tsv
+articles_raw_10000.tsv
 articles_scimago.tsv
 articles_scimago_wos.tsv
 articles_scimago_wos_doaj.tsv
+articles_raw.tsv

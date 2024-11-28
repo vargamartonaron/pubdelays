@@ -241,145 +241,121 @@ write.csv(result, "publication_delay_per_year.csv", row.names = FALSE)
 
 ############### Compare filtered and unfiltered article number
 
-data_raw = readr::read_tsv("/users/zsimi/pubdelays/articles_raw.tsv")
+articles_unfiltered <- jsonlite::fromJSON("/users/zsimi/pubmed_medline_articles.json")
+unfiltered_raw_n = nrow(articles_unfiltered)
+paste("There are", unfiltered_raw_n, "number of rows in the unfiltered dataset")
+articles_unfiltered <- articles_unfiltered |>
+  tidyr::unnest(history) |>
+  dplyr::mutate(keywords = stringr::str_replace_all(keywords, ";", ",")) |>
+  dplyr::mutate(
+    publication_types = stringr::str_extract_all(publication_types, "(?<=:)[^;]+") |> 
+      # concatenate types with commas
+      lapply(function(x) paste(x, collapse = ", ")) |>
+      unlist()
+  ) |>
+  dplyr::filter(!(is.na(received) & is.na(accepted))) |>
+  dplyr::mutate_at(c("pubdate", "received", "revised", "accepted", "pubmed", "medline", "entrez", "article_date"), 
+                   # ensure year-month-date format, append 01 where month or day is missing
+                   lubridate::as_date, format=c("%Y", "%Y-%m", "%Y-%m-%d")
+  ) |>
+  dplyr::filter(stringr::str_detect(publication_types, pattern="Journal Article")) |>
+  dplyr::mutate(issn_linking = stringr::str_replace_all(issn_linking, "-", "")) |>
+  dplyr::filter(!is.na(issn_linking)) |>
+  dplyr::mutate(acceptance_delay = as.numeric(difftime(accepted, received, units = "days"))) |>
+  dplyr::mutate(publication_delay = as.numeric(dplyr::if_else(!is.na(article_date), difftime(article_date, accepted, units = "days"), difftime(pubdate, accepted, units = "days")))) |>
+  dplyr::filter((acceptance_delay > 0 & publication_delay > 0) | (acceptance_delay > 0 & is.na(publication_delay)) | (is.na(acceptance_delay) & publication_delay > 0) | (is.na(acceptance_delay) & is.na(publication_delay))) |>
+  dplyr::select(-`pmc-release`, -retracted, -aheadofprint, -ecollection)
 
-unfiltered_n = nrow(data_raw)
+print("Articles processed.")
+
+articles_unfiltered = articles_unfiltered |> 
+  dplyr::mutate(article_date = floor_date(as_date(article_date)), "month") |> 
+  dplyr::mutate(received = floor_date(as_date(article_date)), "month") |> 
+  dplyr::filter(!is.na(article_date) & !is.na(acceptance_delay)) |> 
+  dplyr::mutate(article_date = as_date(article_date)) |> 
+  dplyr::mutate(received = as_date(received)) |> 
+  dplyr::select(received, article_date, acceptance_delay, publication_delay, title) |> 
+  dplyr::distinct()
+
+print("data filtered")
+
+unfiltered_n = nrow(articles_unfiltered)
 filtered_n = nrow(data)
 paste("There are", unfiltered_n, "number of rows in the unfiltered dataset")
 paste("There are", filtered_n, "number of rows in the filtered dataset")
 
 #Compare filtered and unfiltered acceptance delay
 
-data_joined = data
-
-articles_joined_compare = data_joined |>
+articles_filtered_compare = data |>
   dplyr::mutate(article_date_month = paste(lubridate::year(article_date), lubridate::month(article_date),"01", sep = "-")) |>
-  dplyr::mutate(article_date_month = as_date(article_date_month)) |> 
-  filter(!is.na(acceptance_delay),
-         !is.na(article_date_month)) |> 
   dplyr::select(acceptance_delay, article_date_month, publication_delay)
 
-print("check 1")
-
-articles_raw_compare = data_raw |>
-  dplyr::mutate(article_date = as_date(article_date)) |> 
-  dplyr::mutate(received = as_date(received)) |> 
+articles_unfiltered_compare = articles_unfiltered |> 
   dplyr::mutate(article_date_month = paste(lubridate::year(article_date), lubridate::month(article_date),"01", sep = "-")) |>
-  dplyr::mutate(article_date_month = as_date(article_date_month)) |> 
-  filter(!is.na(acceptance_delay),
-         !is.na(article_date_month)) |> 
   dplyr::select(article_date_month, acceptance_delay, publication_delay)
 
-print("check 2")
-
-#Create the monthly means
-
-monthly_means_joined <- articles_joined_compare |>
-  mutate(YearMonth = floor_date(article_date_month, "month"))  |>    
-  group_by(YearMonth) |>                            
-  summarize(MeanValue1 = mean(acceptance_delay))                
-
-monthly_means_raw <- articles_raw_compare |>
-  mutate(YearMonth = floor_date(article_date_month, "month")) |> 
-  group_by(YearMonth) |>                           
-  summarize(MeanValue2 = mean(acceptance_delay))              
-
-print("check 3")
-
-#Create the plot
-
-paste("There are", n_distinct(pull(monthly_means_raw, YearMonth)), "number of different months in the raw dataset")
-paste("There are", n_distinct(pull(monthly_means_joined, YearMonth)), "number of different months in the joined dataset")
-
+min_date <- min(min(articles_unfiltered_compare$article_date_month), min(articles_filtered_compare$article_date_month))
+max_date <- max(max(articles_unfiltered_compare$article_date_month), max(articles_filtered_compare$article_date_month))
 
 ggplot() +
-  geom_line(data = monthly_means_joined, aes(x = YearMonth, y = MeanValue1, color = "Joined Data")) + 
-  geom_line(data = monthly_means_raw, aes(x = YearMonth, y = MeanValue2, color = "Raw data")) + 
-  scale_x_date(date_breaks = "1 year", date_labels = "%Y-%m",
-               limits = as_date(c("2016-01-01", "2023-01-01"))) + 
-  labs(title = "Monthly Mean Line Chart from Two Separate Datasets", 
-       x = "Date", y = "Acceptance delay (days)",
-       colour = "Datasets") +
-  scale_color_manual(values = c("Joined Data" = "blue", "Raw data" = "red")) +
-  ylim(0, 300) +
+  geom_line(data = articles_filtered_compare, aes(x = article_date_month, y = acceptance_delay), color = "blue") +
+  geom_line(data = articles_unfiltered_compare, aes(x = article_date_month, y = acceptance_delay), color = "red") +
+  scale_x_date(limits = c(min_date, max_date)) +
+  labs(title = "Line Plot with Two Datasets",
+       x = "Article Date",
+       y = "acceptance_delay") +
   theme_minimal()
-
-print("check 4")
 
 ggsave("dataset_compare_acceptance_delay.pdf")
 print("Acceptance delay between the two datasets done")
+
+
+##############################################################################################################
+
+articles_filtered_compare = data |>
+  dplyr::mutate(article_date_month = paste(lubridate::year(article_date), lubridate::month(article_date),"01", sep = "-")) |>
+  dplyr::select(acceptance_delay, article_date_month, publication_delay) |> 
+  dplyr::group_by(article_date_month) |>
+  dplyr::summarise(acceptance_delay = mean(acceptance_delay)) |> 
+  ungroup()
+
+
+articles_unfiltered_compare = articles_unfiltered |>
+  dplyr::mutate(article_date_month = paste(lubridate::year(article_date), lubridate::month(article_date),"01", sep = "-")) |>
+  dplyr::select(acceptance_delay, article_date_month, publication_delay) |> 
+  dplyr::group_by(article_date_month) |>
+  dplyr::summarise(acceptance_delay = mean(acceptance_delay)) |> 
+  ungroup()
+
+articles_unfiltered$article_date_month <- as.Date(articles_unfiltered$article_date_month, format = "%Y-%m-%d")
+articles_filtered$article_date_month <- as.Date(articles_filtered$article_date_month, format = "%Y-%m-%d")
+
+
+ggplot() +
+  geom_line(data = articles_filtered_compare, aes(x = article_date_month, y = acceptance_delay), color = "blue") +
+  geom_line(data = articles_unfiltered_compare, aes(x = article_date_month, y = acceptance_delay), color = "red") +
+  scale_x_date(limits = c(min_date, max_date)) +
+  labs(title = "Line Plot with Two Datasets",
+       x = "Article Date",
+       y = "acceptance_delay") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave("acceptance_delay_two_datasets.pdf")
+print("Acceptance delay for two datasets done")
+
 
 ################################################################################################################
 
 #Compare filtered and unfiltered publication delay
 
-articles_raw_compare = articles_raw_compare |> 
-  filter(!is.na(publication_delay))
-
-articles_joined_compare = articles_joined_compare |> 
-  filter(!is.na(publication_delay))
-
-#Create the monthly means
-
-monthly_means_joined <- articles_joined_compare |>
-  mutate(YearMonth = floor_date(article_date_month, "month"))  |>    
-  group_by(YearMonth) |>                            
-  summarize(MeanValue1 = mean(publication_delay))                
-
-monthly_means_raw <- articles_raw_compare |>
-  mutate(YearMonth = floor_date(article_date_month, "month")) |> 
-  group_by(YearMonth) |>                           
-  summarize(MeanValue2 = mean(publication_delay))              
-
-print("check 5")
-
-#Create the plot
-
-
-ggplot() +
-  geom_line(data = monthly_means_joined, aes(x = YearMonth, y = MeanValue1, color = "Joined Data")) + 
-  geom_line(data = monthly_means_raw, aes(x = YearMonth, y = MeanValue2, color = "Raw data")) + 
-  scale_x_date(date_breaks = "1 year", date_labels = "%Y-%m",
-               limits = as_date(c("2016-01-01", "2023-01-01"))) + 
-  labs(title = "Monthly Mean Line Chart from Two Separate Datasets", 
-       x = "Date", y = "Publication delay (days)",
-       colour = "Datasets") +
-  scale_color_manual(values = c("Joined Data" = "blue", "Raw data" = "red")) +
-  ylim(0, 75) +
-  theme_minimal()
-
-print("check 6")
-
-ggsave("dataset_compare_publication_delay.pdf")
-print("Publication delay between the two datasets done")
-
-
+#Investigate other columns
+ 
 #test difference between filtered and unfiltered
 
-
-articles_joined_compare = data_joined |>
-  dplyr::mutate(article_date_month = paste(lubridate::year(article_date), lubridate::month(article_date),"01", sep = "-")) |>
-  dplyr::mutate(article_date_month = as_date(article_date_month)) |> 
-  filter(!is.na(acceptance_delay),
-         !is.na(article_date_month)) |> 
-  dplyr::select(acceptance_delay, article_date_month, publication_delay)
-
-print("check 1")
-
-articles_raw_compare = data_raw |>
-  dplyr::mutate(article_date = as_date(article_date)) |> 
-  dplyr::mutate(received = as_date(received)) |> 
-  dplyr::mutate(article_date_month = paste(lubridate::year(article_date), lubridate::month(article_date),"01", sep = "-")) |>
-  dplyr::mutate(article_date_month = as_date(article_date_month)) |> 
-  filter(!is.na(acceptance_delay),
-         !is.na(article_date_month)) |> 
-  dplyr::select(article_date_month, acceptance_delay, publication_delay)
-
-print("check 2")
-
 ggplot() +
-  geom_density(aes(x = acceptance_delay, color = "Full Dataset"), data = articles_raw_compare) +
-  geom_density(aes(x = acceptance_delay, color = "Subset Dataset"), data = articles_joined_compare) +
+  geom_density(aes(x = acceptance_delay, color = "Full Dataset"), data = articles_unfiltered) +
+  geom_density(aes(x = acceptance_delay, color = "Subset Dataset"), data = articles_filtered) +
   labs(title = "Acceptance Delay Distribution",
        x = "Acceptance Delay",
        y = "Density") +
@@ -388,9 +364,14 @@ ggplot() +
 ggsave("dataset_distributions.pdf")
 print("Distributions for two datasets done")
 
+ks_test_result <- ks.test(articles_unfiltered$acceptance_delay, articles_filtered$acceptance_delay)
+print(ks_test_result)
+
+stop("test 2.c")
+
 #Discipline check
 
-result = data_joined |> 
+result = data |> 
   group_by(discipline) |> 
   summarize(count = n())
 
@@ -398,24 +379,16 @@ print(result)
 print("Discipline check done")
 write.csv(result, "discipline_count.csv", row.names = FALSE)
 
-
+stop("test 2.d")
 
 #Each year curve on same graph
 
-data_joined_graph = data_joined |>
-  filter(!is.na(acceptance_delay),
-         !is.na(article_date)) |> 
+data |>
+  dplyr::mutate(article_date_month = paste(lubridate::year(article_date), lubridate::month(article_date), "01", sep = "-")) |>
   dplyr::mutate(article_date_year = lubridate::year(article_date)) |>
   dplyr::mutate(month = lubridate::month(article_date)) |>
   dplyr::group_by(article_date_year, month) |>
-  dplyr::summarize(mean_acceptance_delay = mean(acceptance_delay, na.rm = TRUE))
-
-write.csv(data_joined_graph, "data_for_graph.csv")
-
-
-print("check 1")
-
-data_joined_graph |> 
+  dplyr::summarize(mean_acceptance_delay = mean(acceptance_delay, na.rm = TRUE)) |>
   ggplot(aes(x = month, y = mean_acceptance_delay, colour = factor(article_date_year))) +
   geom_line(linewidth = 1) +
   scale_x_continuous(breaks = 1:12, labels = month.name) +
@@ -423,45 +396,90 @@ data_joined_graph |>
        x = "Month",
        y = "Mean Acceptance Delay",
        colour = "Year") +
-  ylim(0, 300) +
+  ylim(100, 150) +
   theme_minimal()
 
 
 ggsave("acceptance_delay_per_year.pdf")
 print("Acceptance delay per year done")
-
-#Distribution of delays per year
-
-data_joined |> 
-  mutate(article_date_year = factor(lubridate::year(article_date))) |> 
-  ggplot(aes(x = acceptance_delay, color = article_date_year)) + 
-  geom_density()
-
-ggsave("dist_per_year.pdf")
-print("Distributions for all years done")
-
-##By article number
-
-data_joined |> 
-  group_by(journal_title) |> 
-  mutate(article_number = n()) |> 
-  ggplot(aes(x = article_number)) +
-  geom_density() +
-  ylab("Density of journals")
-
-ggsave("article_n_per_journal.pdf")
-print("Articles per journal done")
-
-
-#################################################################################################
-####################################  UNTESTED  #################################################
-#################################################################################################
-
-#Investigate other columns
-
 #Check if acc and pub delay aligns with the timeline
 
 #Check if journal publishes same values
 
-##Distribution of journals by best quartile
+#Distribution of delays per year
 
+data |> 
+  mutate(article_date_year = paste(lubridate::year(article_date))) |> 
+  ggplot(aes(x = acceptance_delay, colour = article_date_year)) |> 
+  geom_density()
+
+stop("test 6")
+
+#Top, middle, bottom journal values compared
+
+##By SJR
+
+result <- data |> 
+  group_by(journal) |> 
+  mutate(
+    quantiles = quantile(sjr, probs = c(0.25, 0.75)),
+    group = case_when(
+      article_number <= quantiles[1] ~ "Bottom 25%",
+      article_number > quantiles[1] & sjr <= quantiles[2] ~ "Middle 50%",
+      article_number > quantiles[2] ~ "Upper 25%"
+    )
+  ) |> 
+  select(-quantiles) |> 
+  group_by(group) |> 
+  summarize(avg_acceptance_delay = mean(avg_acceptance_delay))
+
+print(result)
+write.csv(result, "journal_rank_quantiles_acceptance_delay.csv")
+
+stop("test 5")
+
+##By article number
+
+result <- data |> 
+  group_by(journal) |> 
+  summarize(
+    article_number = n(),
+    avg_acceptance_delay = mean(acceptance_delay)
+  ) |> 
+  mutate(
+    quantiles = quantile(article_number, probs = c(0.25, 0.75)),
+    group = case_when(
+      article_number <= quantiles[1] ~ "Bottom 25%",
+      article_number > quantiles[1] & article_number <= quantiles[2] ~ "Middle 50%",
+      article_number > quantiles[2] ~ "Upper 25%"
+    )
+  ) |> 
+  select(-quantiles) |> 
+  group_by(group) |> 
+  summarize(avg_acceptance_delay = mean(avg_acceptance_delay))
+
+print(result)
+write.csv(result, "journal_n_articles_quantiles_acceptance_delay.csv")
+
+stop("test 3")
+
+##By rank
+
+result <- data |> 
+  group_by(journal) |> 
+  mutate(
+    quantiles = quantile(rank, probs = c(0.25, 0.75)),
+    group = case_when(
+      article_number <= quantiles[1] ~ "Bottom 25%",
+      article_number > quantiles[1] & rank <= quantiles[2] ~ "Middle 50%",
+      article_number > quantiles[2] ~ "Upper 25%"
+    )
+  ) |> 
+  select(-quantiles) |> 
+  group_by(group) |> 
+  summarize(avg_acceptance_delay = mean(avg_acceptance_delay))
+
+print(result)
+write.csv(result, "journal_rank_quantiles_acceptance_delay.csv")
+
+stop("test 4")
