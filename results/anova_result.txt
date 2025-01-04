@@ -1,0 +1,6 @@
+                       Df    Sum Sq  Mean Sq F value Pr(>F)    
+sjr_best_quartile       4 1.681e+08 42016496    6168 <2e-16 ***
+Residuals         6187350 4.214e+10     6811                   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+254780 observations deleted due to missingness

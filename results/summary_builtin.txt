@@ -1,0 +1,40 @@
+  is_covid          received           article_date        acceptance_delay
+ Mode :logical   Min.   :2005-03-04   Min.   :2005-11-12   Min.   :  1.0   
+ FALSE:6264200   1st Qu.:2018-07-05   1st Qu.:2018-11-30   1st Qu.: 53.0   
+ TRUE :198111    Median :2020-11-12   Median :2021-03-26   Median : 95.0   
+                 Mean   :2020-07-23   Mean   :2020-12-08   Mean   :114.5   
+                 3rd Qu.:2022-10-03   3rd Qu.:2023-02-06   3rd Qu.:153.0   
+                 Max.   :2024-11-25   Max.   :2024-12-28   Max.   :484.0   
+                                                                           
+  is_psych        is_mega        issn_linking          h_index      
+ Mode :logical   Mode :logical   Length:6462311     Min.   :   0.0  
+ FALSE:6186690   FALSE:6018037   Class :character   1st Qu.:  80.0  
+ TRUE :108037    TRUE :444274    Mode  :character   Median : 130.0  
+ NA's :167584                                       Mean   : 160.5  
+                                                    3rd Qu.: 212.0  
+                                                    Max.   :1391.0  
+                                                    NA's   :255592  
+ open_access     publication_delay sjr_best_quartile  publication_types 
+ Mode :logical   Min.   :  1.00    Length:6462311     Length:6462311    
+ FALSE:6462311   1st Qu.:  6.00    Class :character   Class :character  
+                 Median : 15.00    Mode  :character   Mode  :character  
+                 Mean   : 23.71                                         
+                 3rd Qu.: 31.00                                         
+                 Max.   :171.00                                         
+                                                                        
+    title           journal_title           sjr              rank       
+ Length:6462311     Length:6462311     Min.   :  0.10   Min.   :    1   
+ Class :character   Class :character   1st Qu.:  0.74   1st Qu.: 2553   
+ Mode  :character   Mode  :character   Median :  0.94   Median : 4983   
+                                       Mean   :  1.33   Mean   : 5347   
+                                       3rd Qu.:  1.39   3rd Qu.: 7065   
+                                       Max.   :106.09   Max.   :29163   
+                                       NA's   :284186   NA's   :255650  
+  discipline             asjc         total_delay   
+ Length:6462311     Min.   :1000     Min.   :  2.0  
+ Class :character   1st Qu.:1314     1st Qu.: 71.0  
+ Mode  :character   Median :2705     Median :120.0  
+                    Mean   :2255     Mean   :138.2  
+                    3rd Qu.:2739     3rd Qu.:184.0  
+                    Max.   :3616     Max.   :652.0  
+                    NA's   :167642                  

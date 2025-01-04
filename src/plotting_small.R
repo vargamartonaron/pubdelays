@@ -9,8 +9,8 @@ library(viridis)
 library(lubridate)
 
 # Load data
-articles <- readr::read_tsv(
-  "/users/usumusu/pubdelays/journal_articles.tsv"
+articles <- readr::read_csv(
+  "/users/usumusu/pubdelays/data/processed.csv"
 )
 
 megajournals <- c(
@@ -24,21 +24,8 @@ megajournals <- c(
 # Aggregate article_date variable to months as new variable
 articles <- articles |>
   dplyr::mutate(
-    article_date_month = lubridate::floor_date(as_date(article_date), "month"),
-    open_access_status = case_when(
-      `does_the_journal_comply_to_doaj's_definition_of_open_access?` == "Yes" ~ TRUE,
-      `does_the_journal_comply_to_doaj's_definition_of_open_access?` == "No" ~ FALSE,
-      is.na(`does_the_journal_comply_to_doaj's_definition_of_open_access?`) == TRUE ~ FALSE,
-      TRUE ~ FALSE
-    ),
-    is_mega = case_when(
-      issn_linking %in% megajournals ~ TRUE,
-      TRUE ~ FALSE
-    )
-  ) |>
-  dplyr::filter(
-    article_date_month >= lubridate::as_date('2016-01-01') & article_date_month <= lubridate::as_date('2022-12-01')
-    )
+    article_date_month = lubridate::floor_date(as_date(article_date), "month")
+  )
 
 # Plot data
 acceptance_data <- articles |>
@@ -233,7 +220,7 @@ open_access_plot <- ggplot(articles,
   aes(
     x = as_date(article_date),
     y = acceptance_delay,
-    color = `open_access_status`
+    color = open_access
   )
 ) +
   geom_smooth(
@@ -313,6 +300,7 @@ ggsave(
   height = 9,
   units = "in"
 )
+
 all_mega_data <- articles |>
   dplyr::group_by(article_date_month, is_mega) |>
   dplyr::reframe(delay = median(acceptance_delay, na.rm = TRUE))
