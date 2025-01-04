@@ -3,7 +3,7 @@ library(ggdark)
 library(papaja)
 library(viridis)
 
-data <- readr::read_tsv("/users/usumusu/pubdelays/filtered_articles.tsv")
+data <- readr::read_csv("/users/usumusu/pubdelays/data/processed.csv")
 data <- data |>
   filter(ifelse(is_covid, article_date > as_date("2019-12-01"), TRUE))
 
@@ -80,5 +80,3 @@ discipline_loess_plot <-  ggplot(discipline_loess_data, aes(x = article_date, y 
   dark_mode(theme_apa(base_family = "Times", base_size = 24))
 
 ggsave("discipline_loess_plot.pdf", width = 16, height = 9, units = "in", dpi = 300)
-
-

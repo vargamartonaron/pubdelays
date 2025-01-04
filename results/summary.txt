@@ -1,0 +1,6 @@
+# A tibble: 1 × 6
+  mean_acceptance_delay median_acceptance_delay sd_acceptance_delay
+                  <dbl>                   <dbl>               <dbl>
+1                  114.                      95                83.2
+# ℹ 3 more variables: mean_publication_delay <dbl>,
+#   median_publication_delay <dbl>, sd_publication_delay <dbl>

@@ -1,0 +1,26 @@
+
+Call:
+lm(formula = acceptance_delay ~ h_index + sjr + rank + is_psych + 
+    is_mega + open_access, data = data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-813.61  -59.09  -19.36   37.48  389.55 
+
+Coefficients: (1 not defined because of singularities)
+                  Estimate Std. Error t value Pr(>|t|)    
+(Intercept)      1.078e+02  1.021e-01 1056.13   <2e-16 ***
+h_index         -2.276e-02  3.840e-04  -59.27   <2e-16 ***
+sjr              6.707e+00  2.761e-02  242.97   <2e-16 ***
+rank            -6.078e-04  1.118e-05  -54.35   <2e-16 ***
+is_psychTRUE     4.560e+01  2.504e-01  182.08   <2e-16 ***
+is_megaTRUE      4.860e+01  1.448e-01  335.69   <2e-16 ***
+open_accessTRUE         NA         NA      NA       NA    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 81.23 on 6156431 degrees of freedom
+  (285698 observations deleted due to missingness)
+Multiple R-squared:  0.03658,	Adjusted R-squared:  0.03658 
+F-statistic: 4.675e+04 on 5 and 6156431 DF,  p-value: < 2.2e-16
+
