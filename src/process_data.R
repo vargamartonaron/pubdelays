@@ -328,9 +328,8 @@ data <- joined_doaj |>
   ) |>
   dplyr::mutate(
     open_access = dplyr::case_when(
-      "does_the_journal_comply_to_doaj's_definition_of_open_access?" == "Yes" ~ TRUE,
-      "open_access_status" == "Unpaywall Open Acess" ~ TRUE,
-      TRUE ~ FALSE
+      `does_the_journal_comply_to_doaj's_definition_of_open_access?` == "Yes" ~ TRUE,
+      `open_access_status` == "Unpaywall Open Access" ~ TRUE
     )
   ) |>
   dplyr::select(
@@ -363,7 +362,6 @@ filters <- tibble::tibble(
   second_filter = s_filter
 )
 
-print("data filtered")
 
 readr::write_tsv(data, glue::glue("{file}.tsv"))
 readr::write_csv(filters, glue::glue("{file}_filters.csv"))
