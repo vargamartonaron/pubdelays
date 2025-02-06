@@ -2,43 +2,41 @@
 
 library(readr)
 library(lubridate)
-#install.packages("dplyr", repos = "https://cloud.r-project.org/")
 library(dplyr)
-#install.packages("stringr", repos = "https://cloud.r-project.org/")
 library(stringr)
-#install.packages("cowplot")
-#library(cowplot)
-#install.packages("ggdist", repos = "https://cloud.r-project.org/")
 library(ggdist)
-#install.packages("viridis", repos = "https://cloud.r-project.org/")
 library(viridis)
-#install.packages("ggplot2", repos = "https://cloud.r-project.org/")
 library(ggplot2)
-#install.packages("papaja", repos = "https://cloud.r-project.org/")
 library(papaja)
-#install.packages("tidyr", repos = "https://cloud.r-project.org/")
 library(tidyr)
-#install.packages("ggridges", repos = "https://cloud.r-project.org/")
 library(ggridges)
-#install.packages("geomorph", repos = "https://cloud.r-project.org/")
 library(geomorph)
-#install.packages("hexbin", repos = "https://cloud.r-project.org/")
 library(hexbin)
 
-data = readr::read_tsv("/users/zsimi/pubdelays/journal_articles_everything.tsv")
+data <- readr::read_tsv(
+  "/users/usumusu/pubdelays/journal_articles_everything.tsv"
+)
 
 # Mean before and after COVID
 colnames(data)
 
-filtered_data = data |> 
-  filter(!is.na(article_date) & !is.na(acceptance_delay)) |> 
-  filter(acceptance_delay <= 730 & acceptance_delay >= 7) |> 
-  mutate(article_date = floor_date(as_date(article_date), "month"),
-         covid_group = if_else(article_date < as.Date("2019-12-01"), "Before", "After")) |> 
-  mutate(is_psych = ifelse(((3200 <= `all_science_journal_classification_codes_(asjc)`) & (3207 >= `all_science_journal_classification_codes_(asjc)`)), TRUE, FALSE)) |> 
+filtered_data <- data |>
+  filter(!is.na(article_date) & !is.na(acceptance_delay)) |>
+  filter(acceptance_delay <= 730 & acceptance_delay >= 7) |>
+  mutate(
+    article_date = as_date(article_date),
+    covid_group = if_else(
+      article_date < as.Date("2019-12-01"),
+      "Before",
+      "After"
+    )
+  ) |>
+  mutate(
+    is_psych = ifelse((3200 <= `asjc`) & (3207 >= `asjc`), TRUE, FALSE)
+  ) |>
   group_by(covid_group)
 
-mean_data <- filtered_data |> 
+mean_data <- filtered_data |>
   summarise(mean_acceptance_delay = mean(acceptance_delay, na.rm = TRUE))
 
 # Print the mean values for each group
@@ -47,7 +45,7 @@ print(mean_data)
 sink("summary_stats.txt")
 
 # Calculate mean
-mean_data <- filtered_data |> 
+mean_data <- filtered_data |>
   summarise(mean_acceptance_delay = mean(acceptance_delay))
 
 # Print number of rows in data and filtered_data
@@ -55,11 +53,11 @@ num_rows_data <- nrow(data)
 num_rows_filtered <- nrow(filtered_data)
 
 # Calculate median
-median_data <- filtered_data |> 
+median_data <- filtered_data |>
   summarise(median_acceptance_delay = median(acceptance_delay))
 
 # Calculate standard deviation
-sd_data <- filtered_data |> 
+sd_data <- filtered_data |>
   summarise(sd_acceptance_delay = sd(acceptance_delay))
 
 # Print the results
@@ -81,21 +79,23 @@ sink()
 #Covid articles
 
 sink("covid.txt")
-covid_data_false = filtered_data |> 
-  filter(is_covid == FALSE) |> 
-  summarise(mean_acceptance_delay = mean(acceptance_delay),
-            median_acceptance_delay = median(acceptance_delay),
-            sd_acceptance_delay = sd(acceptance_delay)) |> 
+covid_data_false <- filtered_data |>
+  filter(is_covid == FALSE) |>
+  summarise(
+    mean_acceptance_delay = mean(acceptance_delay),
+    median_acceptance_delay = median(acceptance_delay),
+    sd_acceptance_delay = sd(acceptance_delay)
+  ) |>
   mutate(is_covid = "False")
 
-covid_data_true = filtered_data |> 
-  filter(is_covid == TRUE) |> 
+covid_data_true <- filtered_data |>
+  filter(is_covid == TRUE) |>
   summarise(mean_acceptance_delay = mean(acceptance_delay),
             median_acceptance_delay = median(acceptance_delay),
-            sd_acceptance_delay = sd(acceptance_delay)) |> 
+            sd_acceptance_delay = sd(acceptance_delay)) |>
   mutate(is_covid = "True")
 
-covid_data = rbind(covid_data_false, covid_data_true)
+covid_data <- rbind(covid_data_false, covid_data_true)
 print(covid_data)
 sink()
 
@@ -125,7 +125,7 @@ articles <- filtered_data |>
     )
   ) |>
   dplyr::filter(
-    article_date_month >= lubridate::as_date('2016-01-01') & article_date_month <= lubridate::as_date('2023-12-01')
+    article_date_month >= lubridate::as_date("2016-01-01") & article_date_month <= lubridate::as_date("2023-12-01")
   )
 
 # Plot data
@@ -173,11 +173,12 @@ acceptance_data_journal <- articles |>
   ) |>
   tidyr::drop_na(delay)
 
-acceptance_plot <- ggplot(acceptance_data,
-                          aes(
-                            x = as_date(article_date_month),
-                            y = delay
-                          )
+acceptance_plot <- ggplot(
+  acceptance_data,
+  aes(
+    x = as_date(article_date_month),
+    y = delay
+  )
 ) +
   geom_point(alpha = 1 / 5) +
   scale_x_date(
@@ -317,12 +318,13 @@ ggsave(
   units = "in"
 )
 
-open_access_plot <- ggplot(articles,
-                           aes(
-                             x = as_date(article_date),
-                             y = acceptance_delay,
-                             color = `open_access_status`
-                           )
+open_access_plot <- ggplot(
+  articles,
+  aes(
+    x = as_date(article_date),
+    y = acceptance_delay,
+    color = `open_access_status`
+  )
 ) +
   geom_smooth(
     show.legend = TRUE,
@@ -568,38 +570,70 @@ megajournals_names <- c(
 
 acceptance_data <- articles |>
   dplyr::group_by(article_date) |>
-  dplyr::reframe(delay = median(acceptance_delay, na.rm=T)) |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
+  dplyr::reframe(delay = median(acceptance_delay, na.rm = TRUE)) |>
+  dplyr::filter(
+    article_date >= lubridate::as_date("2016-01-01") &
+      article_date <= lubridate::as_date("2022-12-01")
+  ) |>
   tidyr::drop_na(delay)
 
 
 acceptance_plot <- ggplot(acceptance_data, aes(x = article_date, y = delay)) +
-  geom_point(alpha = 1/5) +
-  scale_x_date(date_breaks = '1 year', date_labels = '%Y') +
-  labs(y = "Elfogadási késés mediánja (nap)", x = "Dátum", title = "Elfogadási késés") +
-  theme_apa(base_family = "Times", base_size = 32) + 
+  geom_point(alpha = 1 / 5) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  labs(
+    y = "Elfogadási késés mediánja (nap)",
+    x = "Dátum",
+    title = "Elfogadási késés"
+  ) +
+  theme_apa(base_family = "Times", base_size = 32) +
   ylim(40, 160) +
-  geom_hline(yintercept = 100, linetype = "dashed", color = "#BF616A", linewidth = 2)
+  geom_hline(
+    yintercept = 100,
+    linetype = "dashed",
+    color = "#BF616A",
+    linewidth = 2
+  )
 
-ggsave('acceptance_plot.pdf', scale = 0.9, width = 16, height = 9, units = "in", dpi = 200)
+ggsave("acceptance_plot.pdf", scale = 0.9, width = 16, height = 9, units = "in", dpi = 200)
 
 covid_delay_data <- articles |>
   dplyr::group_by(article_date) |>
-  dplyr::reframe(covid_acceptance_delay = median(acceptance_delay[is_covid], na.rm = TRUE),
-                 covid_publication_delay = median(publication_delay[is_covid], na.rm = TRUE)) |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01')) |>
+  dplyr::reframe(
+    covid_acceptance_delay = median(acceptance_delay[is_covid], na.rm = TRUE),
+    covid_publication_delay = median(publication_delay[is_covid], na.rm = TRUE)
+  ) |>
+  dplyr::filter(
+    article_date >= lubridate::as_date("2016-01-01") &
+      article_date <= lubridate::as_date("2022-12-01")
+  ) |>
   tidyr::drop_na(covid_acceptance_delay) |>
   tidyr::drop_na(covid_publication_delay)
 
 non_covid_delay_data <- articles |>
   dplyr::group_by(article_date) |>
-  dplyr::reframe(non_covid_acceptance_delay = median(acceptance_delay[!is_covid], na.rm = TRUE),
-                 non_covid_publication_delay = median(publication_delay[!is_covid], na.rm = TRUE)) |>
+  dplyr::reframe(
+    non_covid_acceptance_delay = median(
+      acceptance_delay[!is_covid],
+      na.rm = TRUE
+    ),
+    non_covid_publication_delay = median(
+      publication_delay[!is_covid],
+      na.rm = TRUE
+    )
+  ) |>
   tidyr::drop_na(non_covid_acceptance_delay) |>
   tidyr::drop_na(non_covid_publication_delay)
 
-joined_delay_data <- left_join(non_covid_delay_data, covid_delay_data, by = join_by(article_date)) |>
-  dplyr::filter(article_date >= lubridate::as_date('2016-01-01') & article_date <= lubridate::as_date('2022-12-01'))
+joined_delay_data <- left_join(
+  non_covid_delay_data,
+  covid_delay_data,
+  by = join_by(article_date)
+) |>
+  dplyr::filter(
+    article_date >= lubridate::as_date("2016-01-01") &
+      article_date <= lubridate::as_date("2022-12-01")
+  )
 
 covid_acceptance_plot <- ggplot(joined_delay_data) +
   geom_point(alpha = 0.5, aes(x = article_date, y = covid_acceptance_delay, color = "Covid")) +
