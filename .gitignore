@@ -8,3 +8,19 @@ articles_scimago.tsv
 articles_scimago_wos.tsv
 articles_scimago_wos_doaj.tsv
 articles_raw.tsv
+
+# Ignore everything in raw_data/pubmed that is the building block of the dataset
+data/raw_data/pubmed/jsons/*
+data/raw_data/pubmed/xmls/*
+
+# Keep the folder structure
+!data/raw_data/pubmed/
+!data/raw_data/pubmed/jsons/
+!data/raw_data/pubmed/xmls/
+
+# Ignore processed.csv files, these are too big to be on Git
+data/raw_data/pubmed/processed.csv
+data/processed_data/processed.csv
+
+# Include all of temp_data
+# (no need to ignore anything there)

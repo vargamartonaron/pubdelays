@@ -1,0 +1,24 @@
+
+Family: Gamma 
+Link function: log 
+
+Formula:
+acceptance_delay ~ s(month_of_year, bs = "cc", k = 12) + s(article_year, 
+    bs = "cr", k = 8) + s(weekday, bs = "cc", k = 7)
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 4.7281392  0.0002875   16448   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Approximate significance of smooth terms:
+                   edf Ref.df       F p-value    
+s(month_of_year) 8.892 10.000   71.72  <2e-16 ***
+s(article_year)  6.951  6.999 4234.91  <2e-16 ***
+s(weekday)       4.974  5.000  268.67  <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+R-sq.(adj) =  0.00519   Deviance explained = 0.458%
+fREML = 6.7741e+06  Scale est. = 0.51421   n = 6235457

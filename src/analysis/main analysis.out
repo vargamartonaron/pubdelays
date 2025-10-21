@@ -1,0 +1,94 @@
+Failed to query server: Connection timed out
+
+Attaching package: ‘lubridate’
+
+The following objects are masked from ‘package:base’:
+
+    date, intersect, setdiff, union
+
+Warning message:
+In system("timedatectl", intern = TRUE) :
+  running command 'timedatectl' had status 1
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+here() starts at /mnt/st04pool/users/zsimi/pubdelays
+
+Attaching package: ‘ggridges’
+
+The following objects are masked from ‘package:ggdist’:
+
+    scale_point_color_continuous, scale_point_color_discrete,
+    scale_point_colour_continuous, scale_point_colour_discrete,
+    scale_point_fill_continuous, scale_point_fill_discrete,
+    scale_point_size_continuous
+
+Loading required package: nlme
+
+Attaching package: ‘nlme’
+
+The following object is masked from ‘package:dplyr’:
+
+    collapse
+
+This is mgcv 1.9-3. For overview type 'help("mgcv-package")'.
+Loading required package: MASS
+
+Attaching package: ‘MASS’
+
+The following object is masked from ‘package:dplyr’:
+
+    select
+
+Loading required package: survival
+Rows: 6729658 Columns: 47
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr  (21): issn_linking, sjr_2024, sjr_2023, sjr_2022, sjr_2021, sjr_2020, s...
+dbl  (17): acceptance_delay, h_index, publication_delay, sjr, rank, asjc, np...
+lgl   (7): is_covid, is_psych, is_mega, open_access, is_series, accdelay_out...
+date  (2): received, article_date
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+Warning messages:
+1: In plot_theme(plot) :
+  The `plot.subtitle.position` theme element is not defined in the element
+hierarchy.
+2: In plot_theme(plot) :
+  The `plot.subtitle.position` theme element is not defined in the element
+hierarchy.
+[1] "rainplot done"
+Simple Model based on 6235457 articles
+Method: fREML   Optimizer: perf newton
+full convergence after 7 iterations.
+Gradient range [-0.01779576,0.01767342]
+(score 6774112 & scale 0.514208).
+Hessian positive definite, eigenvalue range [2.445775,3117728].
+Model rank =  23 / 23 
+
+Basis dimension (k) checking results. Low p-value (k-index<1) may
+indicate that k is too low, especially if edf is close to k'.
+
+                    k'   edf k-index p-value  
+s(month_of_year) 10.00  8.89    0.92    0.03 *
+s(article_year)   7.00  6.95    0.94    0.37  
+s(weekday)        5.00  4.97    0.95    0.44  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+null device 
+          1 
+null device 
+          1 
+Percentage of deviance explained: 0.46 %
+Time taken to fit the GAM model: 34.06 seconds
+Error: simple_gam
+Execution halted
