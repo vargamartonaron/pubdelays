@@ -12,127 +12,165 @@ source(here::here("src/R/utils.R"))
 
 articles = read_csv(here::here("data/processed_data/processed.csv"))
 
-# Check column types
+readr::write_csv(articles, here::here("data/processed_data/processed.csv"))
 
-type_rules = validator(
-  is.logical(is_covid),
-  is.Date(received),
-  is.Date(article_date),
-  is.numeric(acceptance_delay),
-  is.logical(is_psych),
-  is.logical(is_mega),
-  is.character(issn_linking),
-  is.numeric(h_index),
-  is.logical(open_access),
-  is.numeric(publication_delay),
-  is.character(title),
-  is.character(journal),
-  is.numeric(sjr),
-  is.numeric(rank),
-  is.character(discipline),
-  is.numeric(asjc),
-  is.character(npi_discipline),
-  is.character(npi_field),
-  is.numeric(npi_level_24),
-  is.numeric(npi_level_23),
-  is.numeric(npi_level_22),
-  is.numeric(npi_level_21),
-  is.numeric(npi_level_20),
-  is.numeric(npi_level_19),
-  is.numeric(npi_level_18),
-  is.numeric(npi_level_17),
-  is.numeric(npi_level_16),
-  is.numeric(npi_level_15),
-  is.logical(is_series),
-  is.numeric(established),
-  is.character(country),
-  is.character(keywords),
-  is.character(apc),
-  is.character(apc_amount)
+nrow(articles)
+
+outlier_delays = articles |>
+   summarise(
+     accdelay_outlier_lower = sum(acceptance_delay <= 1, na.rm = TRUE),
+     accdelay_outlier_upper = sum(acceptance_delay >= 1095, na.rm = TRUE),
+     pubdelay_lower = sum(publication_delay <= 1, na.rm = TRUE),
+     pubdelay_upper = sum(publication_delay >= 1095, na.rm = TRUE),
+     accdelay_outlier = sum(acceptance_delay <= 1 | acceptance_delay >= 1095, na.rm = TRUE),
+     pubdelay_outlier = sum(publication_delay <= 1 | publication_delay >= 1095, na.rm = TRUE)
+   )
+
+write.csv(outlier_delays, here::here("tables/validation_tables/outlier_delays.csv"), row.names = FALSE)
+
+articles = articles |>
+   filter(acceptance_delay >= 1,
+          acceptance_delay <= 1095,
+          publication_delay >= 1,
+          publication_delay <= 1095)
+
+nrow(articles)
+
+articles = articles |> 
+  filter(article_date >= as.Date("2016-01-01"),
+         article_date <= as.Date("2025-06-01"))
+
+nrow(articles)
+
+############### Check column types
+
+type_rules <- validator(
+  is_covid            = is.logical(is_covid),
+  received            = is.Date(received),
+  article_date        = is.Date(article_date),
+  acceptance_delay    = is.numeric(acceptance_delay),
+  is_psych            = is.logical(is_psych),
+  is_mega             = is.logical(is_mega),
+  issn_linking        = is.character(issn_linking),
+  h_index             = is.numeric(h_index),
+  open_access         = is.logical(open_access),
+  publication_delay   = is.numeric(publication_delay),
+  title               = is.character(title),
+  journal             = is.character(journal),
+  sjr                 = is.numeric(sjr),
+  rank                = is.numeric(rank),
+  discipline          = is.character(discipline),
+  asjc                = is.numeric(asjc),
+  npi_discipline      = is.character(npi_discipline),
+  npi_field           = is.character(npi_field),
+  npi_level_16        = is.numeric(npi_level_16),
+  npi_level_17        = is.numeric(npi_level_17),
+  npi_level_18        = is.numeric(npi_level_18),
+  npi_level_19        = is.numeric(npi_level_19),
+  npi_level_20        = is.numeric(npi_level_20),
+  npi_level_21        = is.numeric(npi_level_21),
+  npi_level_22        = is.numeric(npi_level_22),
+  npi_level_23        = is.numeric(npi_level_23),
+  npi_level_24        = is.numeric(npi_level_24),
+  is_series           = is.logical(is_series),
+  established         = is.numeric(established),
+  country             = is.character(country),
+  keywords            = is.character(keywords),
+  apc                 = is.character(apc),
+  apc_amount          = is.character(apc_amount)
 )
 
-# Check missing articles
 
-missingness = validator(
-  !is.na(is_covid),
-  !is.na(received),
-  !is.na(article_date),
-  !is.na(acceptance_delay),
-  !is.na(is_psych),
-  !is.na(is_mega),
-  !is.na(issn_linking),
-  !is.na(h_index),
-  !is.na(open_access),
-  !is.na(publication_delay),
-  !is.na(title),
-  !is.na(journal),
-  !is.na(sjr),
-  !is.na(rank),
-  !is.na(discipline),
-  !is.na(asjc),
-  !is.na(npi_discipline),
-  !is.na(npi_field),
-  !is.na(npi_level_24),
-  !is.na(npi_level_23),
-  !is.na(npi_level_22),
-  !is.na(npi_level_21),
-  !is.na(npi_level_20),
-  !is.na(npi_level_19),
-  !is.na(npi_level_18),
-  !is.na(npi_level_17),
-  !is.na(npi_level_16),
-  !is.na(npi_level_15),
-  !is.na(is_series),
-  !is.na(established),
-  !is.na(country),
-  !is.na(keywords),
-  !is.na(apc[open_access == TRUE]),
-  !is.na(apc_amount[open_access == TRUE])
+############### Check missing articles
+
+missingness <- validator(
+  is_covid            = !is.na(is_covid),
+  received            = !is.na(received),
+  article_date        = !is.na(article_date),
+  acceptance_delay    = !is.na(acceptance_delay),
+  is_psych            = !is.na(is_psych),
+  is_mega             = !is.na(is_mega),
+  issn_linking        = !is.na(issn_linking),
+  h_index             = !is.na(h_index),
+  open_access         = !is.na(open_access),
+  publication_delay   = !is.na(publication_delay),
+  title               = !is.na(title),
+  journal             = !is.na(journal),
+  sjr                 = !is.na(sjr),
+  rank                = !is.na(rank),
+  discipline          = !is.na(discipline),
+  asjc                = !is.na(asjc),
+  npi_discipline      = !is.na(npi_discipline),
+  npi_field           = !is.na(npi_field),
+  npi_level_16        = if (established <= 2015) !is.na(npi_level_16),
+  npi_level_17        = if (established <= 2016) !is.na(npi_level_17),
+  npi_level_18        = if (established <= 2017) !is.na(npi_level_18),
+  npi_level_19        = if (established <= 2018) !is.na(npi_level_19),
+  npi_level_20        = if (established <= 2019) !is.na(npi_level_20),
+  npi_level_21        = if (established <= 2020) !is.na(npi_level_21),
+  npi_level_22        = if (established <= 2021) !is.na(npi_level_22),
+  npi_level_23        = if (established <= 2022) !is.na(npi_level_23),
+  npi_level_24        = if (established <= 2023) !is.na(npi_level_24),
+  sjr_2016            = if (established <= 2015) !is.na(sjr_2016),
+  sjr_2017            = if (established <= 2016) !is.na(sjr_2017),
+  sjr_2018            = if (established <= 2017) !is.na(sjr_2018),
+  sjr_2019            = if (established <= 2018) !is.na(sjr_2019),
+  sjr_2020            = if (established <= 2019) !is.na(sjr_2020),
+  sjr_2021            = if (established <= 2020) !is.na(sjr_2021),
+  sjr_2022            = if (established <= 2021) !is.na(sjr_2022),
+  sjr_2023            = if (established <= 2022) !is.na(sjr_2023),
+  sjr_2024            = if (established <= 2023) !is.na(sjr_2024),
+  is_series           = !is.na(is_series),
+  established         = !is.na(established),
+  country             = !is.na(country),
+  keywords            = !is.na(keywords),
+  apc                 = !is.na(apc[open_access == TRUE]),
+  apc_amount          = !is.na(apc_amount[open_access == TRUE])
 )
 
-# Check range
 
-range_checks = validator(
-  grepl("Journal Article", publication_types),
-  in_range(received, min=as.Date("2014-12-31"), max=as.Date("2025-06-01")),
-  in_range(article_date, min=as.Date("2014-12-31"), max=as.Date("2025-06-01")),
-  in_range(acceptance_delay, min=0, max=700),
-  in_range(publication_delay, min=0, max=700),
-  in_range(established, min=1500, max=2025),
-  in_range(h_index, min=0, max=1000),
-  in_range(sjr, min=0, max=100),
-  in_range(rank, min=1, max=20000),
-  in_range(asjc, min=1000, max=4999),
-  in_range(npi_level_24, min=0, max=2),
-  in_range(npi_level_23, min=0, max=2),
-  in_range(npi_level_22, min=0, max=2),
-  in_range(npi_level_21, min=0, max=2),
-  in_range(npi_level_20, min=0, max=2),
-  in_range(npi_level_19, min=0, max=2),
-  in_range(npi_level_18, min=0, max=2),
-  in_range(npi_level_17, min=0, max=2),
-  in_range(npi_level_16, min=0, max=2),
-  in_range(npi_level_15, min=0, max=2),
-  sjr_2024 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2023 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2022 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2021 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2020 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2019 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2018 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2017 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2016 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2015 %in% c("Q1", "Q2", "Q3", "Q4")
+############### Check range
+
+range_checks <- validator(
+  publication_types   = grepl("Journal Article", publication_types),
+  received            = in_range(received, min = as.Date("2013-01-01"), max = as.Date("2025-06-01")),
+  article_date        = in_range(article_date, min = as.Date("2016-01-01"), max = as.Date("2025-06-01")),
+  acceptance_delay    = in_range(acceptance_delay, min = 1, max = 1095),  # 1 day to 3 years
+  publication_delay   = in_range(publication_delay, min = 1, max = 1095),
+  established         = in_range(established, min = 1500, max = 2025),
+  h_index             = in_range(h_index, min = 0, max = 1500),
+  sjr                 = in_range(sjr, min = 0, max = 150),
+  rank                = in_range(rank, min = 1, max = 35000),
+  asjc                = in_range(asjc, min = 1000, max = 4999),
+  npi_level_16        = if (established <= 2015) in_range(npi_level_16, min = 0, max = 2),
+  npi_level_17        = if (established <= 2016) in_range(npi_level_17, min = 0, max = 2),
+  npi_level_18        = if (established <= 2017) in_range(npi_level_18, min = 0, max = 2),
+  npi_level_19        = if (established <= 2018) in_range(npi_level_19, min = 0, max = 2),
+  npi_level_20        = if (established <= 2019) in_range(npi_level_20, min = 0, max = 2),
+  npi_level_21        = if (established <= 2020) in_range(npi_level_21, min = 0, max = 2),
+  npi_level_22        = if (established <= 2021) in_range(npi_level_22, min = 0, max = 2),
+  npi_level_23        = if (established <= 2022) in_range(npi_level_23, min = 0, max = 2),
+  npi_level_24        = if (established <= 2023) in_range(npi_level_24, min = 0, max = 2),
+  sjr_2016            = if (established <= 2015) sjr_2016 %in% c("Q1", "Q2", "Q3", "Q4"),
+  sjr_2017            = if (established <= 2016) sjr_2017 %in% c("Q1", "Q2", "Q3", "Q4"),
+  sjr_2018            = if (established <= 2017) sjr_2018 %in% c("Q1", "Q2", "Q3", "Q4"),
+  sjr_2019            = if (established <= 2018) sjr_2019 %in% c("Q1", "Q2", "Q3", "Q4"),
+  sjr_2020            = if (established <= 2019) sjr_2020 %in% c("Q1", "Q2", "Q3", "Q4"),
+  sjr_2021            = if (established <= 2020) sjr_2021 %in% c("Q1", "Q2", "Q3", "Q4"),
+  sjr_2022            = if (established <= 2021) sjr_2022 %in% c("Q1", "Q2", "Q3", "Q4"),
+  sjr_2023            = if (established <= 2022) sjr_2023 %in% c("Q1", "Q2", "Q3", "Q4"),
+  sjr_2024            = if (established <= 2023) sjr_2024 %in% c("Q1", "Q2", "Q3", "Q4")
 )
 
-# Check article uniqueness
+
+############### Check article uniqueness
 
 uniqueness = validator(
   is_unique(title)
 )
 
 
-# Save validations as figures
+############### Save validations as figures
 
 cf_type = confront(articles, type_rules)
 summary(cf_type)
@@ -269,45 +307,11 @@ covid_articles = articles |>
 
 write.csv(covid_articles, here::here("tables/validation_tables/covid_articles.csv"), row.names = FALSE)
 
-############### Look at outliers
-
-mean_delay <- mean(articles$acceptance_delay, na.rm = TRUE)
-
-acceptance_delay_outliers <- articles |> 
-  filter(accdelay_outlier == TRUE) |> 
-  mutate(outlier = ifelse(acceptance_delay < mean_delay, "bottom", "top")) |> 
-  group_by(position = outlier) |> 
-  summarise(
-    mean = mean(acceptance_delay, na.rm = TRUE),
-    median = median(acceptance_delay, na.rm = TRUE),
-    sd = sd(acceptance_delay, na.rm = TRUE),
-    n = n(),
-    .groups = "drop"
-  )
-
-write.csv(acceptance_delay_outliers, here::here("tables/validation_tables/acceptance_delay_outliers.csv"), row.names = TRUE)
-
-mean_delay <- mean(articles$publication_delay, na.rm = TRUE)
-
-publication_delay_outliers <- articles |> 
-  filter(pubdelay_outlier == TRUE) |> 
-  mutate(outlier = ifelse(publication_delay < mean_delay, "bottom", "top")) |> 
-  group_by(position = outlier) |> 
-  summarise(
-    mean = mean(publication_delay, na.rm = TRUE),
-    median = median(publication_delay, na.rm = TRUE),
-    sd = sd(publication_delay, na.rm = TRUE),
-    n = n(),
-    .groups = "drop"
-  )
-
-write.csv(publication_delay_outliers, here::here("tables/validation_tables/publication_delay_outliers.csv"), row.names = TRUE)
-
 ############### Acceptance Delays per month
 
 monthly_acceptance_delay = articles |>
   filter(!is.na(article_date),
-         article_date <= as.Date("2025-05-30")) |> 
+         article_date <= as.Date("2025-06-01")) |> 
   dplyr::mutate(article_date_month = paste(lubridate::year(article_date), lubridate::month(article_date),"01", sep = "-")) |>
   mutate(article_date_month = as_date(article_date_month)) |> 
   dplyr::group_by(article_date_month) |>
@@ -340,7 +344,7 @@ monthly_publication_delay = articles |>
 
 ggsave(here::here("figures/validation_figures/publication_delay_month.pdf"))
 
-#Discipline check
+############### Discipline check
 
 wos_discipline = articles |> 
   filter(!is.na(discipline)) |> 
@@ -370,7 +374,7 @@ write.csv(wos_discipline, here::here("tables/validation_tables/wos_discipline.cs
 write.csv(npi_discipline, here::here("tables/validation_tables/npi_discipline.csv"), row.names = FALSE)
 write.csv(agreement_between_discipline, here::here("tables/validation_tables/agreement_between_disciplines.csv"), row.names = FALSE)
 
-#Each year curve on same graph
+############### Each year curve on same graph
 
 articles_graph = articles |>
   filter(!is.na(acceptance_delay),
@@ -390,15 +394,19 @@ articles_graph |>
 
 ggsave(here::here("figures/validation_figures/acceptance_delay_per_year.pdf"))
 
-#Distribution of delays per year
+############### Distribution of delays per year
 
 articles |> 
   mutate(article_date_year = factor(lubridate::year(article_date))) |> 
-  filter(accdelay_outlier == FALSE) |> 
   ggplot(aes(x = acceptance_delay, colour = article_date_year)) + 
   geom_density(alpha = 0.2) +
+  scale_x_continuous(limits = c(0, 730), breaks = c(50, 100, 365, 730)) +
   plot_visuals("", "Distribution of acceptance delays per year", "", 10,  T, "Year", "Acceptance delay", "Density")
 
 ggsave(here::here("figures/validation_figures/acceptance_delay_distribution_per_year.pdf"))
+
+############### Saving validated data
+
+readr::write_csv(articles, "/users/zsimi/pubdelays/data/processed_data/processed.csv")
 
 stop("Analysis done")
