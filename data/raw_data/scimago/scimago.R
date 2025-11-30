@@ -1,5 +1,4 @@
 library("dplyr")
-#library("glue")
 library("jsonlite")
 library("fuzzyjoin")
 library("tidyr")
@@ -31,7 +30,7 @@ scimagojr_list <- lapply(scimagojr_list, function(df) {
   df = df |> 
     dplyr::select(title, issn, h.index, sjr.best.quartile, rank, sjr) |> 
     dplyr::rename(journal_title = title) |>
-    dplyr::rename(issn_linking = issn) |>
+    dplyr::rename(issn_linking = issn) |> 
     tidyr::separate_longer_delim(issn_linking, delim = ", ")
   return(df)
 })
@@ -40,7 +39,7 @@ scimagojr_list_cleaned <- lapply(names(scimagojr_list), function(year) {
   df <- scimagojr_list[[year]]
   if (year != "scimagojr2024") {
     df <- df |> 
-      dplyr::select(issn_linking, sjr.best.quartile)
+      dplyr::select(issn_linking, sjr.best.quartile, h.index, rank, sjr)
   }
   return(df)
 })
@@ -52,28 +51,25 @@ list2env(scimagojr_list_cleaned, envir = .GlobalEnv)
 scimagojr2024 = scimagojr2024 |> 
   filter(!is.na(sjr.best.quartile))
 
-
-########### Shorten all dataframes for easier processing (do not include for accurate results)
-
-# for (year in years) {
-#   assign(paste0("scimagojr", year), get(paste0("scimagojr", year))
-#          |> slice_head(n = 1000))
-# }
-
 ########## Merge all dataframes
-
 
 # Ensure scimago2024 is the base
 scimago <- scimagojr2024 %>%
   select(issn_linking, sjr.best.quartile, h.index, journal_title, rank, sjr) %>%
-  rename(sjr_2024 = sjr.best.quartile) %>%
+  rename(quartile_2024 = sjr.best.quartile) %>%
+  rename(h_index_2024 = h.index) %>%
+  rename(rank_2024 = rank) %>%
+  rename(sjr_2024 = sjr) %>%
   distinct(issn_linking, .keep_all = TRUE)  # Remove duplicates
 
 # Merge remaining years
 for (year in 2015:2023) {
   df <- get(paste0("scimagojr", year)) %>%
-    select(issn_linking, sjr.best.quartile) %>%
-    rename(!!paste0("sjr_", year) := sjr.best.quartile) %>%
+    select(issn_linking, sjr.best.quartile, h.index, rank, sjr) %>%
+    rename(!!paste0("quartile_", year) := sjr.best.quartile) %>%
+    rename(!!paste0("h_index_", year) := h.index) %>%
+    rename(!!paste0("rank_", year) := rank) %>%
+    rename(!!paste0("sjr_", year) := sjr) %>%
     distinct(issn_linking, .keep_all = TRUE)  # Remove duplicates
   
   scimago <- left_join(scimago, df, by = "issn_linking")
@@ -84,9 +80,8 @@ print("Merge successful")
 unwanted_values <- c("-", "NA", "_", "")
 
 scimago <- scimago |> 
-  mutate(across(everything(), ~ if_else(.x %in% unwanted_values, NA, .x))) |> 
-  arrange(desc(!is.na(sjr_2024)), desc(!is.na(sjr_2023)), desc(!is.na(sjr_2022))) |> 
-  rename(h_index = h.index)
-
+  mutate(across(everything(), ~ if_else(.x %in% unwanted_values, NA, .x))) 
+  #arrange(desc(!is.na(sjr_2024)), desc(!is.na(sjr_2023)), desc(!is.na(sjr_2022))) |> 
+  #distinct(journal_title, .keep_all = TRUE)
 
 write.csv(scimago, "/users/zsimi/pubdelays/data/processed_data/scimago.csv")

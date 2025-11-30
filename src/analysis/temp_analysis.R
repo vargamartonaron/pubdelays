@@ -11,66 +11,24 @@ library(ggridges)
 library(scales)
 
 
-data = readr::read_csv("/users/zsimi/processed.csv")
-scimago = readr::read_csv("/users/zsimi/pubdelays/src/data/scimago/scimago.csv")
-non_retracted_data = readr::read_csv("/users/zsimi/pubdelays/src/analysis/non_retracted_sample.csv")
-
-
-
-set.seed(123)
-
-# data = data |> 
-#   sample_n(500000)
-
-########## Quartile fix
-
-scimago = scimago |> 
-  select(issn_linking, sjr_2023, sjr_2022, sjr_2021, sjr_2020, sjr_2019, sjr_2018, sjr_2017, sjr_2016, sjr_2015)
-
-
-data = data |> 
-  left_join(scimago, by = "issn_linking", keep = FALSE)
-  
 
 # Load custom functions
-source(here::here("src/analysis/utils.R"))
+source(here::here("src/R/utils.R"))
 #plot_visuals <- function(title, subtitle, tag, n, with_legend = FALSE, legend_name = NULL, x_axis_name = NULL, y_axis_name = NULL, use_fill = TRUE)
 
-data = data |> 
-  filter(article_date > as_date("2014-12-31"),
-         article_date < as_date("2024-12-01"))
+data = read_csv(here::here("data/processed_data/processed.csv"))
 
-data <- data |> 
-  mutate(article_year = format(article_date, "%Y"),
-         article_year = as.character(article_year),
-         quartile_year = case_when(
-           article_year == "2015" ~ sjr_2015,
-           article_year == "2016" ~ sjr_2016,
-           article_year == "2017" ~ sjr_2017,
-           article_year == "2018" ~ sjr_2018,
-           article_year == "2019" ~ sjr_2019,
-           article_year == "2020" ~ sjr_2020,
-           article_year == "2021" ~ sjr_2021,
-           article_year == "2022" ~ sjr_2022,
-           article_year == "2023" ~ sjr_2023,
-           TRUE ~ NA_character_  # Default to NA if no match
-         ))
+## Data for TDK
 
-# Now plot using the correct quartile for each year
-plot <- data |> 
-  filter(quartile_year %in% c("Q1", "Q2", "Q3", "Q4")) |> 
-  ggplot(aes(x = article_date, y = acceptance_delay, colour = as.factor(quartile_year))) + 
-  geom_smooth(method = "lm", formula = y ~ poly(x, 5), se = TRUE)
+tdk_data <- data |> 
+  filter(discipline == "social_sciences_and_humanities") |> 
+  select(title, keywords, article_date, received, acceptance_delay, publication_delay, publication_types, journal, doi, asjc, is_retracted)
 
-ggsave(width = 6, height = 4, dpi = 600, "correct_quartile_plot.pdf")
+nrow(tdk_data)
 
-#Wrong quartile for comparison
-plot <- data |> 
-  filter(sjr_best_quartile %in% c("Q1", "Q2", "Q3", "Q4")) |> 
-  ggplot(aes(x = article_date, y = acceptance_delay, colour = as.factor(sjr_best_quartile))) + 
-  geom_smooth(method = "lm", formula = y ~ poly(x, 5), se = TRUE)
+write.csv(tdk_data, here::here("data/processed_data/tdk_data.csv"))
 
-ggsave(width = 6, height = 4, dpi = 600, "wrong_quartile_plot.pdf")
+stop("tdk")
 
 ############### Retraction fix
 

@@ -12,8 +12,6 @@ source(here::here("src/R/utils.R"))
 
 articles = read_csv(here::here("data/processed_data/processed.csv"))
 
-readr::write_csv(articles, here::here("data/processed_data/processed.csv"))
-
 nrow(articles)
 
 outlier_delays = articles |>
@@ -52,32 +50,28 @@ type_rules <- validator(
   is_psych            = is.logical(is_psych),
   is_mega             = is.logical(is_mega),
   issn_linking        = is.character(issn_linking),
-  h_index             = is.numeric(h_index),
+  h_index             = is.numeric(h_index_year),
   open_access         = is.logical(open_access),
   publication_delay   = is.numeric(publication_delay),
   title               = is.character(title),
   journal             = is.character(journal),
-  sjr                 = is.numeric(sjr),
-  rank                = is.numeric(rank),
+  quartile            = is.character(quartile_year),
+  rank                = is.numeric(rank_year),
   discipline          = is.character(discipline),
   asjc                = is.numeric(asjc),
   npi_discipline      = is.character(npi_discipline),
   npi_field           = is.character(npi_field),
-  npi_level_16        = is.numeric(npi_level_16),
-  npi_level_17        = is.numeric(npi_level_17),
-  npi_level_18        = is.numeric(npi_level_18),
-  npi_level_19        = is.numeric(npi_level_19),
-  npi_level_20        = is.numeric(npi_level_20),
-  npi_level_21        = is.numeric(npi_level_21),
-  npi_level_22        = is.numeric(npi_level_22),
-  npi_level_23        = is.numeric(npi_level_23),
-  npi_level_24        = is.numeric(npi_level_24),
+  npi_year            = is.numeric(npi_year),
   is_series           = is.logical(is_series),
   established         = is.numeric(established),
   country             = is.character(country),
   keywords            = is.character(keywords),
   apc                 = is.character(apc),
-  apc_amount          = is.character(apc_amount)
+  apc_amount          = is.character(apc_amount),
+  doi                 = is.character(doi),
+  retraction_nature   = is.character(retraction_nature),
+  retraction_reason   = is.character(reason),
+  is_retracted        = is.logical(is_retracted)
 )
 
 
@@ -91,41 +85,25 @@ missingness <- validator(
   is_psych            = !is.na(is_psych),
   is_mega             = !is.na(is_mega),
   issn_linking        = !is.na(issn_linking),
-  h_index             = !is.na(h_index),
+  h_index             = !is.na(h_index_year),
   open_access         = !is.na(open_access),
   publication_delay   = !is.na(publication_delay),
   title               = !is.na(title),
   journal             = !is.na(journal),
-  sjr                 = !is.na(sjr),
-  rank                = !is.na(rank),
+  rank                = !is.na(rank_year),
   discipline          = !is.na(discipline),
   asjc                = !is.na(asjc),
   npi_discipline      = !is.na(npi_discipline),
   npi_field           = !is.na(npi_field),
-  npi_level_16        = if (established <= 2015) !is.na(npi_level_16),
-  npi_level_17        = if (established <= 2016) !is.na(npi_level_17),
-  npi_level_18        = if (established <= 2017) !is.na(npi_level_18),
-  npi_level_19        = if (established <= 2018) !is.na(npi_level_19),
-  npi_level_20        = if (established <= 2019) !is.na(npi_level_20),
-  npi_level_21        = if (established <= 2020) !is.na(npi_level_21),
-  npi_level_22        = if (established <= 2021) !is.na(npi_level_22),
-  npi_level_23        = if (established <= 2022) !is.na(npi_level_23),
-  npi_level_24        = if (established <= 2023) !is.na(npi_level_24),
-  sjr_2016            = if (established <= 2015) !is.na(sjr_2016),
-  sjr_2017            = if (established <= 2016) !is.na(sjr_2017),
-  sjr_2018            = if (established <= 2017) !is.na(sjr_2018),
-  sjr_2019            = if (established <= 2018) !is.na(sjr_2019),
-  sjr_2020            = if (established <= 2019) !is.na(sjr_2020),
-  sjr_2021            = if (established <= 2020) !is.na(sjr_2021),
-  sjr_2022            = if (established <= 2021) !is.na(sjr_2022),
-  sjr_2023            = if (established <= 2022) !is.na(sjr_2023),
-  sjr_2024            = if (established <= 2023) !is.na(sjr_2024),
+  npi_year            = !is.na(npi_year),
+  quartile_year       = !is.na(quartile_year),
   is_series           = !is.na(is_series),
   established         = !is.na(established),
   country             = !is.na(country),
   keywords            = !is.na(keywords),
   apc                 = !is.na(apc[open_access == TRUE]),
-  apc_amount          = !is.na(apc_amount[open_access == TRUE])
+  apc_amount          = !is.na(apc_amount[open_access == TRUE]), 
+  retracted           = !is.na(reason[is_retracted == TRUE])
 )
 
 
@@ -138,28 +116,11 @@ range_checks <- validator(
   acceptance_delay    = in_range(acceptance_delay, min = 1, max = 1095),  # 1 day to 3 years
   publication_delay   = in_range(publication_delay, min = 1, max = 1095),
   established         = in_range(established, min = 1500, max = 2025),
-  h_index             = in_range(h_index, min = 0, max = 1500),
-  sjr                 = in_range(sjr, min = 0, max = 150),
-  rank                = in_range(rank, min = 1, max = 35000),
+  h_index             = in_range(h_index_year, min = 0, max = 1500),
+  rank                = in_range(rank_year, min = 1, max = 35000),
   asjc                = in_range(asjc, min = 1000, max = 4999),
-  npi_level_16        = if (established <= 2015) in_range(npi_level_16, min = 0, max = 2),
-  npi_level_17        = if (established <= 2016) in_range(npi_level_17, min = 0, max = 2),
-  npi_level_18        = if (established <= 2017) in_range(npi_level_18, min = 0, max = 2),
-  npi_level_19        = if (established <= 2018) in_range(npi_level_19, min = 0, max = 2),
-  npi_level_20        = if (established <= 2019) in_range(npi_level_20, min = 0, max = 2),
-  npi_level_21        = if (established <= 2020) in_range(npi_level_21, min = 0, max = 2),
-  npi_level_22        = if (established <= 2021) in_range(npi_level_22, min = 0, max = 2),
-  npi_level_23        = if (established <= 2022) in_range(npi_level_23, min = 0, max = 2),
-  npi_level_24        = if (established <= 2023) in_range(npi_level_24, min = 0, max = 2),
-  sjr_2016            = if (established <= 2015) sjr_2016 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2017            = if (established <= 2016) sjr_2017 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2018            = if (established <= 2017) sjr_2018 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2019            = if (established <= 2018) sjr_2019 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2020            = if (established <= 2019) sjr_2020 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2021            = if (established <= 2020) sjr_2021 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2022            = if (established <= 2021) sjr_2022 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2023            = if (established <= 2022) sjr_2023 %in% c("Q1", "Q2", "Q3", "Q4"),
-  sjr_2024            = if (established <= 2023) sjr_2024 %in% c("Q1", "Q2", "Q3", "Q4")
+  npi_level           = in_range(npi_year, min = 0, max = 2),
+  quartile            = quartile_year %in% c("Q1", "Q2", "Q3", "Q4")
 )
 
 
@@ -168,7 +129,6 @@ range_checks <- validator(
 uniqueness = validator(
   is_unique(title)
 )
-
 
 ############### Save validations as figures
 

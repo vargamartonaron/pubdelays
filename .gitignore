@@ -24,3 +24,11 @@ data/processed_data/processed.csv
 
 # Include all of temp_data
 # (no need to ignore anything there)
+
+# Ignore all .out files
+*.out
+
+# Ignore analysis files, as these don't reflect the final version
+src/analysis/main_analysis.R
+src/analysis/temp_analysis.R
+figures/analysis_figures/

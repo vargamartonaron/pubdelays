@@ -8,7 +8,6 @@ library("lubridate")
 library("stringr")
 library("tibble")
 library("purrr")
-#install.packages("tools", repos = "http://cran.us.r-project.org")
 library("tools")
 
 
@@ -50,6 +49,7 @@ scimago <- readr::read_csv("/users/zsimi/pubdelays/data/processed_data/scimago.c
 webofscience <- readr::read_csv("/users/zsimi/pubdelays/data/processed_data/web_of_science.csv")
 doaj <- readr::read_csv("/users/zsimi/pubdelays/data/processed_data/doaj.csv")
 npi <- readr::read_csv("/users/zsimi/pubdelays/data/processed_data/norwegian_list.csv")
+retraction_watch <- readr::read_csv("/users/zsimi/pubdelays/data/processed_data/retraction_watch.csv")
 
 print("test_1")
 
@@ -189,18 +189,98 @@ f_filter <- nrow(articles)
 print("test_3")
 
 joined_doaj <- articles |>
-  dplyr::left_join(
-    scimago, join_by("issn_linking"), suffix = c("", "_scimago")
-  ) |>
+   dplyr::left_join(
+     scimago, join_by("issn_linking"), suffix = c("", "_scimago")
+   ) |>
   dplyr::left_join(
     webofscience, join_by("issn_linking"), suffix = c("", "_wos")
   ) |>
   dplyr::left_join(
     doaj, join_by("issn_linking"), suffix = c("", "_doaj")
-  ) |> 
+  ) |>
   dplyr::left_join(
     npi, join_by("issn_linking"), suffix = c("", "_npi")
-  ) 
+  )
+
+joined_doaj <- joined_doaj |> 
+  mutate(article_year = as.numeric(paste(lubridate::year(article_date)))) |> 
+  mutate(
+    quartile_year = as.character(case_when(
+      article_year == 2015 ~ quartile_2015,
+      article_year == 2016 ~ quartile_2016,
+      article_year == 2017 ~ quartile_2017,
+      article_year == 2018 ~ quartile_2018,
+      article_year == 2019 ~ quartile_2019,
+      article_year == 2020 ~ quartile_2020,
+      article_year == 2021 ~ quartile_2021,
+      article_year == 2022 ~ quartile_2022,
+      article_year == 2023 ~ quartile_2023,
+      article_year == 2024 ~ quartile_2024,
+      article_year == 2025 ~ quartile_2024,
+      TRUE ~ NA_character_  # Default to NA if no match
+    ))) |> 
+  mutate(npi_year = as.numeric(case_when(
+    article_year == 2025 ~ npi_level_24,
+    article_year == 2024 ~ npi_level_24,
+    article_year == 2023 ~ npi_level_23,
+    article_year == 2022 ~ npi_level_22,
+    article_year == 2021 ~ npi_level_21,
+    article_year == 2020 ~ npi_level_20,
+    article_year == 2019 ~ npi_level_19,
+    article_year == 2018 ~ npi_level_18,
+    article_year == 2017 ~ npi_level_17,
+    article_year == 2016 ~ npi_level_16,
+    article_year == 2015 ~ npi_level_15,
+    TRUE ~ NA_real_
+  ))) |> 
+  mutate(rank_year = as.numeric(case_when(
+    article_year == 2025 ~ rank_2024,
+    article_year == 2024 ~ rank_2024,
+    article_year == 2023 ~ rank_2023,
+    article_year == 2022 ~ rank_2022,
+    article_year == 2021 ~ rank_2021,
+    article_year == 2020 ~ rank_2020,
+    article_year == 2019 ~ rank_2019,
+    article_year == 2018 ~ rank_2018,
+    article_year == 2017 ~ rank_2017,
+    article_year == 2016 ~ rank_2016,
+    article_year == 2015 ~ rank_2015,
+    TRUE ~ NA_real_
+  ))) |> 
+  mutate(h_index_year = as.numeric(case_when(
+    article_year == 2025 ~ h_index_2024,
+    article_year == 2024 ~ h_index_2024,
+    article_year == 2023 ~ h_index_2023,
+    article_year == 2022 ~ h_index_2022,
+    article_year == 2021 ~ h_index_2021,
+    article_year == 2020 ~ h_index_2020,
+    article_year == 2019 ~ h_index_2019,
+    article_year == 2018 ~ h_index_2018,
+    article_year == 2017 ~ h_index_2017,
+    article_year == 2016 ~ h_index_2016,
+    article_year == 2015 ~ h_index_2015,
+    TRUE ~ NA_real_
+  ))) |> 
+  # mutate(sjr_year = as.numeric(case_when(
+  #   article_year == 2025 ~ as.numeric(sjr_2024),
+  #   article_year == 2024 ~ as.numeric(sjr_2024),
+  #   article_year == 2023 ~ as.numeric(sjr_2023),
+  #   article_year == 2022 ~ as.numeric(sjr_2022),
+  #   article_year == 2021 ~ as.numeric(sjr_2021),
+  #   article_year == 2020 ~ as.numeric(sjr_2020),
+  #   article_year == 2019 ~ as.numeric(sjr_2019),
+  #   article_year == 2018 ~ as.numeric(sjr_2018),
+  #   article_year == 2017 ~ as.numeric(sjr_2017),
+  #   article_year == 2016 ~ as.numeric(sjr_2016),
+  #   article_year == 2015 ~ as.numeric(sjr_2015),
+  #   TRUE ~ NA_real_
+  # ))) |> 
+  select(-ends_with(c(
+    "15", "16", "17", "18", "19",
+    "20", "21", "22", "23", "24", "25"
+  )))
+  
+head(joined_doaj)
 
 names(joined_doaj) <- gsub(" ", "_", tolower(names(joined_doaj)))
 joined_doaj <- joined_doaj[!duplicated(names(joined_doaj))]
@@ -241,7 +321,7 @@ data <- joined_doaj |>
   ) |> 
   filter(is.na(ceased) | ceased <= 2014,
          is_conference == 0,
-         received >= as.Date("2015-01-01")
+         received >= as.Date("2013-01-01")
   ) |>
   dplyr::select(
     is_covid,
@@ -251,26 +331,26 @@ data <- joined_doaj |>
     is_psych,
     is_mega,
     issn_linking,
-    h_index,
+    h_index_year,
     open_access,
     publication_delay,
-    sjr_2024, sjr_2023, sjr_2022, sjr_2021, sjr_2020, sjr_2019, sjr_2018, sjr_2017, sjr_2016, sjr_2015,
     publication_types,
     title,
     journal,
-    sjr,
-    rank,
+    quartile_year,
+    rank_year,
     discipline,
     asjc,
     npi_discipline,
     npi_field,
-    npi_level_24, npi_level_23, npi_level_22, npi_level_21, npi_level_20, npi_level_19, npi_level_18, npi_level_17, npi_level_16, npi_level_15,
+    npi_year,
     is_series,
     established,
     country,
     keywords,
     apc,
-    apc_amount
+    apc_amount,
+    doi
   ) |>
   dplyr::distinct(title, .keep_all = TRUE) # keep unique articles only
 
@@ -284,6 +364,31 @@ filters <- tibble::tibble(
 
 print("data filtered")
 
+# Retraction watch test
+
+data = data |> 
+  left_join(retraction_watch |> 
+              mutate(merge_key = coalesce(doi, retraction_doi)),
+            by = c("doi" = "merge_key"),
+            suffix = c("", "_retraction"))
+
+
+data <- data |>
+  mutate(is_retracted = as.logical(if_else(!is.na(reason) | !is.na(retraction_nature), TRUE, FALSE))) |> 
+  mutate(article_date = case_when(
+    !is.na(retraction_date) ~ as.Date(original_date),
+    TRUE ~ article_date
+  )) |>
+  select(
+    -original_date,
+    -title_retraction,
+    -retraction_doi,
+    -doi_retraction
+  )
+
+nrow(data)
+colnames(data)
+head(data)
 
 readr::write_tsv(data, glue::glue("{file}.tsv"))
 
@@ -291,13 +396,13 @@ stop("test_5")
 
 #readr::write_csv(filters, glue::glue("{json_files}_filters.csv"))
 
-for (json_file in json_files) {
+#for (json_file in json_files) {
 
-  base_name <- basename(json_file)
+#  base_name <- basename(json_file)
 
-  output_file <- file.path("/users/zsimi/pubdelays/data/processed_data/", paste0(base_name, ".tsv"))
+#  output_file <- file.path("/users/zsimi/pubdelays/data/processed_data/", paste0(base_name, ".tsv"))
 
-  write_tsv(data, output_file)
-}
+#  write_tsv(data, output_file)
+#}
 
-print("test_5")
+#print("test_5")

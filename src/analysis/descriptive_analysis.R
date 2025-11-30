@@ -18,22 +18,32 @@ source(here::here("src/R/utils.R"))
 
 data = readr::read_csv(here::here("data/processed_data/processed.csv"))
 
-data = data |> 
-  filter(accdelay_outlier == FALSE,
-         pubdelay_outlier == FALSE )
-
-
 # Number of articles
 
-## All articles
+## All articles with known receival, acceptance, and publication dates
 
 all_article_number = data |> 
   mutate(article_year = paste(lubridate::year(article_date))) |> 
-  filter(!is.na(article_year)) |>
+  filter(!is.na(article_year),
+         !is.na(acceptance_delay),
+         !is.na(publication_delay)) |>
   group_by(article_year) |>
   summarise(article_number = n(),
             all_articles = nrow(data),
             percentage = n() / all_articles * 100)
+
+# Acceptance and publication delays each month
+
+month_table = data |> 
+  dplyr::mutate(
+    article_date_month = floor_date(as_date(article_date), "month")
+  ) |>
+  group_by(article_date_month) |> 
+  summarise(
+    n = n(),
+    mean_acc_delay = mean(acceptance_delay, na.rm = TRUE),
+    mean_pub_delay = mean(publication_delay, na.rm = TRUE)
+  )
 
 ## Covid articles
 
@@ -100,22 +110,51 @@ retracted_article_number = data |>
 ## Discipline
 
 discipline_article_number = data |> 
-  mutate(article_year = paste(lubridate::year(article_date))) |> 
-  filter(!is.na(article_year),
-         !is.na(discipline)) |>
-  group_by(article_year, discipline) |>
+  group_by(discipline) |>
   summarise(
     all_articles = nrow(data),
-    discipline_number_per_year = n(),
+    discipline_number = n(),
     percentage_all = n() / all_articles * 100
   )
 
+## Quartiles
+
+sum(is.na(data$article_date))
+all_articles = nrow(data)
+
+quartile_data <- data |> 
+  mutate(article_year = as.numeric(paste(lubridate::year(article_date)))) |> 
+  mutate(
+    quartile_year = as.character(case_when(
+      article_year == 2015 ~ sjr_2015,
+      article_year == 2016 ~ sjr_2016,
+      article_year == 2017 ~ sjr_2017,
+      article_year == 2018 ~ sjr_2018,
+      article_year == 2019 ~ sjr_2019,
+      article_year == 2020 ~ sjr_2020,
+      article_year == 2021 ~ sjr_2021,
+      article_year == 2022 ~ sjr_2022,
+      article_year == 2023 ~ sjr_2023,
+      article_year == 2024 ~ sjr_2024,
+      article_year == 2025 ~ sjr_2024,
+      TRUE ~ NA_character_  # Default to NA if no match
+    ))) |> 
+  select(article_year, quartile_year, starts_with("sjr_"), title)
+
+quartile_article_number = quartile_data |>
+  group_by(quartile_year) |>
+  summarise(
+    quartile_number = n(),
+    percentage_all = n() / all_articles * 100
+  )
+  
 ## Norwegian publication indicator
 
 data_with_years <- data |> 
   mutate(
     article_year = year(article_date),
     npi_year = case_when(
+      article_year == 2025 ~ npi_level_24,
       article_year == 2024 ~ npi_level_24,
       article_year == 2023 ~ npi_level_23,
       article_year == 2022 ~ npi_level_22,
@@ -152,12 +191,31 @@ npi_article_number <- data_with_years |>
   )
 
 write.csv(all_article_number, here::here("tables/analysis_tables/article_number_all.csv"), row.names = FALSE)
+write.csv(month_table, here::here("tables/analysis_tables/month_table.csv"), row.names = FALSE)
 write.csv(covid_article_number, here::here("tables/analysis_tables/article_number_covid.csv"), row.names = FALSE)
 write.csv(open_access_article_number, here::here("tables/analysis_tables/article_number_open_access.csv"), row.names = FALSE)
 write.csv(megajournal_article_number, here::here("tables/analysis_tables/article_number_megajournal.csv"), row.names = FALSE)
 write.csv(retracted_article_number, here::here("tables/analysis_tables/article_number_retracted.csv"), row.names = FALSE)
 write.csv(discipline_article_number, here::here("tables/analysis_tables/article_number_discipline.csv"), row.names = FALSE)
+write.csv(quartile_article_number, here::here("tables/analysis_tables/article_number_quartile.csv"), row.names = FALSE)
 write.csv(npi_article_number, here::here("tables/analysis_tables/article_number_npi.csv"), row.names = FALSE)
+
+stop("quartile test")
+
+# Number of articles
+
+## Yearly number of articles
+
+yearly_article_number = data |> 
+  mutate(article_year = paste(lubridate::year(article_date))) |> 
+  filter(!is.na(article_year)) |>
+  group_by(article_year) |>
+  ggplot(aes(x = article_year)) +
+  geom_bar() +
+  geom_text(stat='count', aes(label=comma(..count..)), vjust=-0.5) +
+  plot_visuals("", "Yearly number of articles", "", 4,  FALSE, NULL, "Year", "Count")
+
+ggsave(here::here("figures/analysis_figures/yearly_distribution.pdf"))
 
 
 # Distribution of articles
@@ -188,9 +246,11 @@ discipline_distribution = data |>
     "health_sciences" = "Health Sciences",
     "life_sciences" = "Life Sciences",
     "physical_sciences" = "Physical Sciences",
-    "social_sciences_and_humanities" = "Social Sciences and Humanities"
+    "social_sciences_and_humanities" = "Social Sciences and Humanities",
+    "multidisciplinary" = "Multidisciplinary"
   )) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  geom_text(stat='count', aes(label=comma(..count..)), vjust=-0.5) +
+  coord_flip() +
   scale_y_continuous(labels = label_number(big.mark = ".", decimal.mark = ","))
   
 ggsave(here::here("figures/analysis_figures/discipline_distribution.pdf"))
@@ -285,6 +345,8 @@ publication_delay_distribution = data |>
 ggsave(here::here("figures/analysis_figures/publication_delay_distribution.pdf"))
 
 # General information about delays
+
+## Summary for all years combined
 
 summary_data <- data |> 
   summarise(mean_acceptance_delay = round(mean(acceptance_delay, na.rm = TRUE), 3),

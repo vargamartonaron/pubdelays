@@ -55,6 +55,7 @@
 "Access microbiology",3,3
 "Accident; analysis and prevention",1,1
 "Accreditation and quality assurance : journal for quality, comparability and reliability in chemical measurement",3,2.6
+"Acoustical physics",3,2.2
 "Acoustics Australia",2,2.2
 "Acta anaesthesiologica Scandinavica",2,1.2
 "Acta analytica : philosophy and psychology",1,1.4
@@ -96,6 +97,7 @@
 "Acta neuropathologica",1,1
 "Acta neuropathologica communications",1,1
 "Acta obstetricia et gynecologica Scandinavica",1,1
+"Acta oceanologica Sinica = Hai yang xue bao",2,2.9
 "Acta odontologica Scandinavica",2,1.5
 "Acta oecologica (Montrouge, France)",2,1.9
 "Acta of bioengineering and biomechanics",4,3
@@ -166,6 +168,7 @@
 "Advances in nutrition (Bethesda, Md.)",1,1
 "Advances in operator theory",3,2.833
 "Advances in orthopedics",3,2.5
+"Advances in oto-rhino-laryngology",NA,NA
 "Advances in pharmacological and pharmaceutical sciences",1,1.75
 "Advances in pharmacological sciences",NA,NA
 "Advances in radiation oncology",1,1.75
@@ -275,6 +278,7 @@
 "American journal of physiology. Heart and circulatory physiology",1,1
 "American journal of physiology. Regulatory, integrative and comparative physiology",2,1.6
 "American journal of physiology. Renal physiology",NA,NA
+"American journal of political science",1,1
 "American journal of preventive cardiology",1,1
 "American journal of preventive medicine",1,1
 "American journal of primatology",1,1
@@ -332,7 +336,6 @@
 "Animal science journal = Nihon chikusan Gakkaiho",2,1.7
 "Animal welfare (South Mimms, England)",2,1.6
 "Animals : an open access journal from MDPI",1,1.2
-"Annalen der Physik",2,1.4
 "Annales Henri Poincare",1,1
 "Annales d'endocrinologie",2,2.5
 "Annales de cardiologie et d'angeiologie",4,3.714
@@ -583,6 +586,7 @@
 "Asian-Australasian journal of animal sciences",NA,NA
 "Asiatische Studien",NA,NA
 "Assessing writing",1,1
+"Assessment in education : principles, policy & practice",1,1.2
 "Astrophysics and space science",3,3
 "Atencion primaria",2,2.3
 "Atherosclerosis",1,1
@@ -765,6 +769,7 @@
 "Best practice & research. Clinical obstetrics & gynaecology",1,1
 "Best practice & research. Clinical rheumatology",1,1
 "Big earth data",1,1
+"Bilingualism (Cambridge, England)",1,1
 "Bio Systems",3,2.3
 "Bio-protocol",2,2
 "BioControl (Dordrecht, Netherlands)",1,1.1
@@ -836,6 +841,7 @@
 "Biology",1,1
 "Biology & philosophy",1,1
 "Biology and fertility of soils",1,1
+"Biology bulletin of the Russian Academy of Sciences",3,3
 "Biology direct",1,1
 "Biology letters",1,1
 "Biology methods & protocols",1,1.4
@@ -1147,6 +1153,7 @@
 "Cell",1,1
 "Cell & bioscience",1,1
 "Cell and tissue banking",2,2.4
+"Cell and tissue biology",4,4
 "Cell and tissue research",1,1
 "Cell biochemistry and biophysics",2,2.1
 "Cell biochemistry and function",2,1.9
@@ -1295,6 +1302,7 @@
 "Cirugia y cirujanos",3,3.778
 "Cities & health",1,1.25
 "Cities (London, England)",1,1
+"City & society (Washington, D.C.)",2,1.8
 "City and environment interactions",1,1
 "Cladistics : the international journal of the Willi Hennig Society",1,1
 "Clean technologies and environmental policy",1,1.4
@@ -1457,6 +1465,8 @@
 "Color research and application",2,2
 "Colorectal disease : the official journal of the Association of Coloproctology of Great Britain and Ireland",2,1.5
 "Combinatorial chemistry & high throughput screening",3,3.1
+"Combustion, explosion, and shock waves",3,2.8
+"Communication & medicine",4,4
 "Communication, culture & critique",1,1.222
 "Communications biology",1,1
 "Communications chemistry",1,1
@@ -1475,6 +1485,7 @@
 "Community dentistry and oral epidemiology",1,1
 "Community development journal",2,2.1
 "Community mental health journal",1,1.7
+"Comparative Southeast European studies",1,2
 "Comparative biochemistry and physiology. Part A, Molecular & integrative physiology",1,1.4
 "Comparative biochemistry and physiology. Part B, Biochemistry & molecular biology",2,2.2
 "Comparative biochemistry and physiology. Part D, Genomics & proteomics",1,1.4
@@ -1498,6 +1509,7 @@
 "Comprehensive reviews in food science and food safety",1,1
 "Comptes rendus biologies",2,1.8
 "Computation (Basel, Switzerland)",2,2
+"Computational & applied mathematics",2,2.4
 "Computational and mathematical methods in medicine",NA,NA
 "Computational and structural biotechnology journal",1,1.1
 "Computational biology and chemistry",2,2.3
@@ -1539,6 +1551,7 @@
 "Computers, environment and urban systems",1,1
 "Computing and software for big science",1,1
 "Computing in science & engineering",1,1.4
+"Concepts in magnetic resonance. Part A, Bridging education and research",4,3.7
 "Concurrency and computation : practice & experience",2,2.2
 "Conflict and health",1,1
 "Congenital anomalies",NA,NA
@@ -1552,6 +1565,7 @@
 "Consortium psychiatricum",3,3
 "Construction and building materials",1,1
 "Construction robotics",NA,NA
+"Constructive approximation",1,1.2
 "Contact dermatitis",1,1.4
 "Contact lens & anterior eye : the journal of the British Contact Lens Association",1,1.2
 "Contemporary Jewry",1,1
@@ -1600,6 +1614,7 @@
 "Cryptography and communications : discrete structures, Boolean functions and sequences",1,1.4
 "CrystEngComm",2,1.4
 "Crystal growth & design",2,1.3
+"Crystallography reports",4,2.9
 "Crystals",2,2
 "Cultural studies of science education",1,1
 "Curationis",1,2.6
@@ -1800,11 +1815,13 @@
 "Discrete event dynamic systems",2,1.2
 "Disease markers",NA,NA
 "Disease models & mechanisms",1,1
+"Disease-a-month : DM",2,2.6
 "Diseases (Basel, Switzerland)",2,2
 "Diseases of the esophagus : official journal of the International Society for Diseases of the Esophagus",1,1.4
 "Displays",2,1.9
 "Distributed computing",1,1.2
 "Diversity",1,1.1
+"Diversity & distributions",1,1
 "Diving and hyperbaric medicine",3,2.9
 "Documenta ophthalmologica. Advances in ophthalmology",2,1.6
 "Doklady biological sciences : proceedings of the Academy of Sciences of the USSR, Biological sciences sections",3,2.7
@@ -1859,7 +1876,6 @@
 "EURASIP journal on information security",2,2.3
 "EURASIP journal on wireless communications and networking",2,1.9
 "EXCLI journal",1,1.6
-"Early child development and care",2,1.8
 "Early childhood education journal",1,1.7
 "Early childhood research quarterly",1,1
 "Early human development",1,1.3
@@ -1897,6 +1913,7 @@
 "Economic analysis and policy",NA,NA
 "Economic botany",2,1.6
 "Economic inquiry",1,1
+"Economic journal (London, England)",1,1
 "Economic modelling",1,1.6
 "Economic theory",1,1
 "Economics and human biology",1,1
@@ -1977,6 +1994,7 @@
 "Engineering in life sciences",2,1.9
 "Engineering research express",2,2.75
 "Engineering with computers",1,1
+"English studies (Amsterdam, Netherlands)",1,1
 "Enterprise information systems",1,1.5
 "Entertainment computing",2,2.3
 "Entomologia experimentalis et applicata",2,1.4
@@ -2062,6 +2080,7 @@
 "Ethos (Berkeley, Calif.)",2,1.3
 "EuPA open proteomics",NA,NA
 "Euphytica: Netherlands journal of plant breeding",2,1.2
+"Eurasian soil science",2,2.1
 "Europace : European pacing, arrhythmias, and cardiac electrophysiology : journal of the working groups on cardiac pacing, arrhythmias, and cardiac cellular electrophysiology of the European Society of Cardiology",1,1
 "Europe's journal of psychology",2,2.3
 "European actuarial journal",2,2
@@ -2142,6 +2161,7 @@
 "European journal of pharmaceutics and biopharmaceutics : official journal of Arbeitsgemeinschaft fur Pharmazeutische Verfahrenstechnik e.V",1,1
 "European journal of pharmacology",1,1.3
 "European journal of philosophy",1,1
+"European journal of phycology",2,1.4
 "European journal of physics",2,2.3
 "European journal of physiotherapy",2,3.1
 "European journal of plastic surgery",3,3
@@ -2269,6 +2289,7 @@
 "Family relations",1,1
 "Fatigue & fracture of engineering materials & structures",1,1
 "Fatigue : biomedicine, health & behavior",2,2.333
+"Feminist media studies",1,1
 "Fertility and sterility",1,1
 "Fetal diagnosis and therapy",2,1.1
 "Few-body systems",3,2.7
@@ -2317,6 +2338,7 @@
 "Food hydrocolloids",1,1
 "Food microbiology",1,1
 "Food policy",1,1
+"Food production, processing and nutrition",1,1
 "Food quality and preference",1,1
 "Food research international (Ottawa, Ont.)",1,1
 "Food science & nutrition",1,1.8
@@ -2512,6 +2534,7 @@
 "Geological journal (Liverpool, England)",2,1.7
 "Geomechanics and geophysics for geo-energy and geo-resources",1,1.333
 "Geometriae dedicata",2,2
+"Geomicrobiology journal",2,2
 "Geophysical journal international",1,1
 "Geophysical prospecting",2,1.5
 "Geophysical research letters",1,1
@@ -2558,6 +2581,7 @@
 "Global heart",1,1
 "Global implementation research and applications",NA,NA
 "Global journal of flexible systems management",1,1.1
+"Global journal of health science",NA,NA
 "Global mental health (Cambridge, England)",1,1
 "Global networks (Oxford, England)",1,1
 "Global pediatric health",2,2
@@ -2622,6 +2646,7 @@
 "Health SA = SA Gesondheid",3,3.111
 "Health and quality of life outcomes",1,1
 "Health and technology",2,2.8
+"Health care analysis : HCA : journal of health philosophy and policy",2,2.1
 "Health care management science",1,1
 "Health care transitions",NA,NA
 "Health economics",1,1
@@ -2685,10 +2710,12 @@
 "Herz",3,3
 "Herzschrittmachertherapie & Elektrophysiologie",3,3.3
 "High blood pressure & cardiovascular prevention : the official journal of the Italian Society of Hypertension",2,2.3
+"Higher education pedagogies",1,1.667
 "Hippocampus",1,1.1
 "Histopathology",1,1
 "Historia, ciencias, saude--Manguinhos",2,2.4
 "Historical biology",1,1.3
+"History (Historical Association (Great Britain))",1,1.875
 "History and philosophy of the life sciences",1,1.1
 "History compass",1,1.8
 "Holz als Roh- und Werkstoff = European journal of wood and wood products",1,1.4
@@ -2725,6 +2752,7 @@
 "Human reproduction (Oxford, England)",1,1
 "Human reproduction open",1,1
 "Human reproduction update",1,1
+"Human resource development quarterly",1,1.1
 "Human resource management",1,1
 "Human resources for health",1,1
 "Human studies",1,1.5
@@ -2906,6 +2934,7 @@
 "Innovative surgical sciences",3,2.8
 "Inorganic chemistry communications",1,1.9
 "Inorganica chimica acta",3,2.1
+"Inquiry (Oslo, Norway)",1,1
 "Inquiry : a journal of medical care organization, provision and financing",2,2
 "Insect biochemistry and molecular biology",1,1
 "Insect conservation and diversity",1,1
@@ -2960,7 +2989,6 @@
 "International immunology",1,1
 "International immunopharmacology",1,1.4
 "International journal for equity in health",1,1
-"International journal for ion mobility spectrometry : official publication of the International Society for Ion Mobility Spectrometry",NA,NA
 "International journal for numerical and analytical methods in geomechanics",1,1
 "International journal for numerical methods in biomedical engineering",2,1.5
 "International journal for numerical methods in engineering",1,1
@@ -2999,6 +3027,7 @@
 "International journal of chronic diseases",NA,NA
 "International journal of chronic obstructive pulmonary disease",1,1.1
 "International journal of circumpolar health",2,2
+"International journal of climate change strategies and management",1,1.5
 "International journal of climatology : a journal of the Royal Meteorological Society",1,1.2
 "International journal of clinical and experimental pathology",NA,NA
 "International journal of clinical and health psychology : IJCHP",1,1.2
@@ -3010,12 +3039,13 @@
 "International journal of community well-being",2,2
 "International journal of computational intelligence systems",2,1.7
 "International journal of computer assisted radiology and surgery",2,1.3
+"International journal of computer mathematics",2,2
 "International journal of computer vision",1,1
 "International journal of computer-supported collaborative learning",1,1
 "International journal of concrete structures & materials",1,1
 "International journal of consumer studies",1,1.6
+"International journal of control, automation, and systems",2,2
 "International journal of cosmetic science",2,1.9
-"International journal of culture and mental health",NA,NA
 "International journal of dental hygiene",2,1.9
 "International journal of dentistry",1,1.7
 "International journal of dermatology",1,1.8
@@ -3031,6 +3061,7 @@
 "International journal of educational research",1,1.3
 "International journal of educational research open",1,1
 "International journal of educational technology in higher education",1,1.5
+"International journal of electrochemical science",3,3.2
 "International journal of electronics and communications = Archiv fur Elektronik und Ubertragungstechnik : AEU",2,2
 "International journal of emergency medicine",2,1.7
 "International journal of endocrinology",3,2.3
@@ -3168,9 +3199,11 @@
 "International journal of surgery case reports",3,3
 "International journal of surgery open",3,3.167
 "International journal of telemedicine and applications",2,2.2
+"International journal of the sociology of language",1,1.1
 "International journal of theoretical physics",3,3
 "International journal of thermal sciences = Revue generale de thermique",1,1
 "International journal of thermophysics",2,2.8
+"International journal of training and development",2,2
 "International journal of tropical insect science",2,3
 "International journal of tryptophan research : IJTR",1,1.6
 "International journal of urban and regional research",1,1
@@ -3184,6 +3217,7 @@
 "International journal of yoga",NA,NA
 "International journal on digital libraries",2,1.9
 "International journal on document analysis and recognition (Online)",1,1.9
+"International journal on interactive design and manufacturing",2,1.9
 "International maritime health",3,3.111
 "International medical case reports journal",4,3.3
 "International microbiology : the official journal of the Spanish Society for Microbiology",2,2.7
@@ -3288,6 +3322,7 @@
 "JTO clinical and research reports",1,1.5
 "Jamba (Potchefstroom, South Africa)",2,2.4
 "Japan and the world economy",1,1.8
+"Japan journal of industrial and applied mathematics",2,2
 "Japan journal of nursing science : JJNS",2,2.4
 "Japanese economic review (Oxford, England)",2,2.7
 "Japanese journal of clinical oncology",2,1.7
@@ -3315,6 +3350,7 @@
 "Journal fur Verbraucherschutz und Lebensmittelsicherheit = Journal of consumer protection and food safety",2,2.7
 "Journal of AAPOS : the official publication of the American Association for Pediatric Ophthalmology and Strabismus",2,2
 "Journal of AOAC International",2,2.1
+"Journal of African economies",1,1.4
 "Journal of Alzheimer's disease reports",2,2
 "Journal of Asia-Pacific biodiversity",3,3.1
 "Journal of Asian economics",2,2
@@ -3342,6 +3378,7 @@
 "Journal of Raman spectroscopy : JRS",2,1.7
 "Journal of Shanghai Jiaotong University (science)",NA,NA
 "Journal of South American earth sciences",2,1.6
+"Journal of Wuhan University of Technology. Materials science edition",3,3
 "Journal of abdominal wall surgery : JAWS",2,2
 "Journal of academic ethics",1,1.1
 "Journal of academic librarianship",1,1
@@ -3361,6 +3398,7 @@
 "Journal of aging research",3,2.5
 "Journal of aging studies",1,1
 "Journal of agrarian change",1,1
+"Journal of agribusiness in developing and emerging economies",1,1.714
 "Journal of agricultural economics",1,1
 "Journal of agricultural science (Toronto, Ont.)",NA,NA
 "Journal of agricultural, biological, and environmental statistics",2,1.3
@@ -3475,6 +3513,7 @@
 "Journal of business ethics : JBE",1,1
 "Journal of business finance & accounting",1,1
 "Journal of business research",1,1
+"Journal of business venturing",1,1
 "Journal of cachexia, sarcopenia and muscle",1,1
 "Journal of cancer epidemiology",3,1.8
 "Journal of cancer policy",1,1.8
@@ -3583,6 +3622,7 @@
 "Journal of complementary & integrative medicine",2,2
 "Journal of complex networks",2,1.5
 "Journal of composite materials",2,2
+"Journal of computational and graphical statistics : a joint publication of American Statistical Association, Institute of Mathematical Statistics, Interface Foundation of North America",1,1
 "Journal of computational chemistry",1,1.1
 "Journal of computational electronics",3,2.4
 "Journal of computational neuroscience",3,2.9
@@ -3605,6 +3645,7 @@
 "Journal of criminal justice",1,1
 "Journal of critical care",1,1
 "Journal of crop improvement",2,2.5
+"Journal of cross-cultural gerontology",2,2.1
 "Journal of cryptographic engineering",3,2
 "Journal of cryptology : the journal of the International Association for Cryptologic Research",2,1.5
 "Journal of cultural cognitive science",NA,NA
@@ -3663,6 +3704,7 @@
 "Journal of endodontics",1,1
 "Journal of endometriosis and pelvic pain disorders",3,3
 "Journal of energy chemistry",1,1
+"Journal of energy resources technology",1,1.5
 "Journal of energy storage",1,1.111
 "Journal of engineering (Stevenage, England)",1,1.333
 "Journal of engineering education",1,1
@@ -3720,6 +3762,7 @@
 "Journal of fluorescence",3,2.1
 "Journal of fluorine chemistry",3,2.4
 "Journal of food biochemistry",1,1.8
+"Journal of food composition and analysis : an official publication of the United Nations University, International Network of Food Data Systems",1,1
 "Journal of food processing and preservation",2,2
 "Journal of food protection",2,1.7
 "Journal of food safety",2,2.1
@@ -3787,6 +3830,7 @@
 "Journal of hepatology",1,1
 "Journal of herbal medicine",2,2
 "Journal of heterocyclic chemistry",3,3.3
+"Journal of heuristics",2,1.7
 "Journal of high energy physics : JHEP",1,1.5
 "Journal of homeland security and emergency management",3,2.2
 "Journal of hospital librarianship",3,2.8
@@ -3859,6 +3903,7 @@
 "Journal of lipid and atherosclerosis",1,1.5
 "Journal of lipid research",1,1
 "Journal of lipids",NA,NA
+"Journal of literacy research : JLR",1,1
 "Journal of loss prevention in the process industries",1,1
 "Journal of low temperature physics",3,2.3
 "Journal of macroeconomics",2,2
@@ -3889,6 +3934,7 @@
 "Journal of mathematical imaging and vision",2,1.5
 "Journal of mathematical physics",2,2
 "Journal of mathematics in industry",3,3.5
+"Journal of media business studies",2,1.9
 "Journal of media psychology",1,1.2
 "Journal of medical Internet research",1,1
 "Journal of medical and biological engineering",3,3
@@ -3939,6 +3985,7 @@
 "Journal of molecular recognition : JMR",3,3.6
 "Journal of molecular structure",2,2.4
 "Journal of monetary economics",1,1
+"Journal of money, credit, and banking",1,1
 "Journal of mountain science",2,2
 "Journal of movement disorders",2,2
 "Journal of multidisciplinary healthcare",1,1.1
@@ -3994,6 +4041,7 @@
 "Journal of nuclear medicine : official publication, Society of Nuclear Medicine",1,1
 "Journal of nuclear medicine technology",3,2.9
 "Journal of nursing management",1,1
+"Journal of nursing measurement",3,3
 "Journal of nursing scholarship : an official publication of Sigma Theta Tau International Honor Society of Nursing",1,1
 "Journal of nutrigenetics and nutrigenomics",NA,NA
 "Journal of nutrition and metabolism",1,1.5
@@ -4153,6 +4201,7 @@
 "Journal of public health in Africa",NA,NA
 "Journal of public health research",2,2.4
 "Journal of public mental health",2,2.9
+"Journal of public transportation",1,1.3
 "Journal of quantitative analysis in sports",2,1.8
 "Journal of quantitative spectroscopy & radiative transfer",1,1.2
 "Journal of quaternary science",1,1
@@ -4178,6 +4227,7 @@
 "Journal of research in special educational needs : JORSEN",2,2.3
 "Journal of research on adolescence : the official journal of the Society for Research on Adolescence",1,1
 "Journal of risk and financial management",2,2.333
+"Journal of risk research",1,1.1
 "Journal of robotic surgery",1,2.2
 "Journal of rural studies",1,1
 "Journal of safety research",1,1
@@ -4210,9 +4260,11 @@
 "Journal of sport rehabilitation",2,1.7
 "Journal of sports medicine (Hindawi Publishing Corporation)",NA,NA
 "Journal of sports science & medicine",1,1.2
+"Journal of statistical computation and simulation",2,1.9
 "Journal of statistical distributions and applications",1,2.667
 "Journal of statistical mechanics (Online)",3,2.8
 "Journal of statistical physics",2,1.8
+"Journal of statistical planning and inference",2,1.6
 "Journal of statistical theory and practice",3,3.2
 "Journal of stomatology, oral and maxillofacial surgery",1,2.5
 "Journal of strength and conditioning research",1,1
@@ -4259,6 +4311,7 @@
 "Journal of the American Society of Echocardiography : official publication of the American Society of Echocardiography",1,1
 "Journal of the American Society of Hypertension : JASH",NA,NA
 "Journal of the American Society of Nephrology : JASN",1,1
+"Journal of the American Statistical Association",1,1
 "Journal of the American Veterinary Medical Association",2,1.3
 "Journal of the American Water Resources Association",1,1.1
 "Journal of the Association for Information Science and Technology",1,1
@@ -4279,7 +4332,6 @@
 "Journal of the Japanese and international economies",1,1.5
 "Journal of the Korean Statistical Society",3,3.1
 "Journal of the London Mathematical Society",1,1
-"Journal of the Marine Biological Association of the United Kingdom. Marine Biological Association of the United Kingdom",3,2.6
 "Journal of the Medical Library Association : JMLA",1,1
 "Journal of the National Cancer Institute",1,1
 "Journal of the National Comprehensive Cancer Network : JNCCN",1,1
@@ -4296,6 +4348,7 @@
 "Journal of the World Aquaculture Society",1,1.6
 "Journal of the World federation of orthodontists",1,2.444
 "Journal of the experimental analysis of behavior",2,1.9
+"Journal of the history of biology",2,1.5
 "Journal of the history of the behavioral sciences",1,1.333
 "Journal of the knowledge economy",NA,2.222
 "Journal of the mechanical behavior of biomedical materials",2,1.3
@@ -4315,6 +4368,7 @@
 "Journal of time series econometrics",4,3.75
 "Journal of tissue engineering",1,1.222
 "Journal of tissue engineering and regenerative medicine",2,1.8
+"Journal of topology",1,1
 "Journal of toxicologic pathology",3,2.8
 "Journal of trace elements in medicine and biology : organ of the Society for Minerals and Trace Elements (GMS)",1,1.4
 "Journal of traditional and complementary medicine",1,1
@@ -4412,7 +4466,6 @@
 "Language, cognition and neuroscience",1,1
 "Large-scale assessments in education",1,1
 "Laryngoscope investigative otolaryngology",2,1.333
-"Laser & photonics reviews",1,1
 "Lasers in medical science",2,1.8
 "Lasers in surgery and medicine",1,1.1
 "Latin American policy",2,2.75
@@ -4841,8 +4894,10 @@
 "Nanotheranostics",1,1
 "National Academy science letters. National Academy of Sciences, India",3,2.7
 "National science review",1,1
+"Nationalities papers",1,1
 "Nations and nationalism",1,1.1
 "Natural hazards (Dordrecht, Netherlands)",1,1
+"Natural language & linguistic theory",1,1
 "Natural language engineering",1,1.5
 "Natural product communications",3,2.6
 "Nature",1,1
@@ -5070,6 +5125,7 @@
 "Ocean & coastal management",1,1.1
 "Ocean dynamics",2,2
 "Ocean science journal : OSJ",2,2.9
+"Oceanology",3,2.8
 "Ocular oncology and pathology",2,2
 "Odontology",2,1.7
 "Oecologia",1,1
@@ -5110,6 +5166,7 @@
 "Optical and quantum electronics",NA,2
 "Optics and laser technology",1,1
 "Optics and lasers in engineering",1,1
+"Optics and spectroscopy",4,3.3
 "Optics communications",2,1.5
 "Optik",2,2
 "Optimal control applications & methods",2,1.8
@@ -5128,6 +5185,7 @@
 "Organisms, diversity & evolution",2,1.7
 "Organizational behavior and human decision processes",1,1
 "Organizational dynamics",1,1.4
+"Organizational psychology review",1,1
 "Organometallics",2,1.1
 "Origins of life and evolution of the biosphere : the journal of the International Society for the Study of the Origin of Life",NA,NA
 "Orphanet journal of rare diseases",1,1
@@ -5306,6 +5364,7 @@
 "Physica. E, Low-dimensional systems & nanostructures",2,2
 "Physical and engineering sciences in medicine",2,1.5
 "Physical biology",2,1.5
+"Physical review. Physics education research",1,1.125
 "Physical sciences reviews",3,3
 "Physical therapy",1,1
 "Physical therapy in sport : official journal of the Association of Chartered Physiotherapists in Sports Medicine",1,1.2
@@ -5385,6 +5444,7 @@
 "Policy & society",1,1.2
 "Policy studies (Policy Studies Institute)",1,1.4
 "Policy studies journal: the journal of the Policy Studies Organization",1,1
+"Political and legal anthropology review : PoLAR",1,1.1
 "Political behavior",1,1
 "Political geography",1,1
 "Political psychology",1,1
@@ -5549,11 +5609,11 @@
 "Quality & quantity",1,1.5
 "Quality and reliability engineering international",2,1.3
 "Quality and user experience",NA,NA
-"Quality of life research : an international journal of quality of life aspects of treatment, care and rehabilitation",1,1
 "Quantitative finance",1,1
 "Quantitative imaging in medicine and surgery",2,2.125
 "Quantitative marketing and economics",1,1
 "Quantitative plant biology",1,1
+"Quantitative science studies",1,1
 "Quantum information processing",2,1.8
 "Quantum science and technology",1,1
 "Quarterly journal of the Royal Meteorological Society. Royal Meteorological Society (Great Britain)",1,1
@@ -5770,13 +5830,17 @@
 "Russian journal of biological invasions",4,3.2
 "Russian journal of bioorganic chemistry",4,4
 "Russian journal of developmental biology",NA,NA
+"Russian journal of ecology",3,3.3
 "Russian journal of general chemistry",4,3.3
+"Russian journal of genetics",4,4
+"Russian journal of marine biology",4,3.7
 "Russian journal of plant physiology: a comprehensive Russian journal on modern phytophysiology",3,2.8
 "SA journal of radiology",3,3.6
 "SAGE open medical case reports",4,4
 "SAGE open medicine",2,2.8
 "SAGE open nursing",1,2.167
 "SERIEs : journal of the Spanish Economic Association",2,1.5
+"SIAM journal on applied dynamical systems",1,1
 "SLAS discovery : advancing life sciences R & D",1,1
 "SLAS technology",2,1.714
 "SN applied sciences",NA,NA
@@ -5830,6 +5894,7 @@
 "Science China. Chemistry",1,1.1
 "Science China. Earth sciences",1,1.1
 "Science China. Life sciences",1,1
+"Science China. Mathematics",1,1.4
 "Science advances",1,1
 "Science and engineering ethics",1,1.3
 "Science and technology of advanced materials",1,1
@@ -5839,7 +5904,6 @@
 "Science immunology",1,1
 "Science robotics",1,1
 "Science translational medicine",1,1
-"Scientia horticulturae",1,1
 "Scientia pharmaceutica",2,2
 "Scientific African",1,1.5
 "Scientific data",1,1
@@ -5877,6 +5941,8 @@
 "Separation and purification technology",1,1
 "Separation science and technology",2,2
 "Separation science plus",3,3
+"Sequential analysis",2,2.4
+"Set-valued and variational analysis",1,1.4
 "Sex education",1,1.2
 "Sex roles",1,1
 "Sexual & reproductive healthcare : official journal of the Swedish Association of Midwives",1,1.2
@@ -5925,9 +5991,11 @@
 "Social development (Oxford, England)",1,1
 "Social forces; a scientific medium of social study and interpretation",1,1
 "Social indicators research",1,1
+"Social movement studies",NA,NA
 "Social networks",1,1
 "Social policy & administration",1,1.1
 "Social psychiatry and psychiatric epidemiology",1,1
+"Social psychology",1,1
 "Social psychology of education : an international journal",1,1
 "Social science & medicine (1982)",1,1
 "Social science quarterly",1,1.1
@@ -5984,6 +6052,7 @@
 "Statistical communications in infectious diseases",NA,NA
 "Statistical papers (Berlin, Germany)",2,1.7
 "Statistics",3,2.3
+"Statistics & probability letters",2,2.5
 "Statistics and computing",1,1
 "Statistics in medicine",1,1
 "Stem cell reports",1,1
@@ -6010,6 +6079,7 @@
 "Structural dynamics (Melville, N.Y.)",1,1
 "Structure (London, England : 1993)",1,1
 "Studies in applied mathematics (Cambridge, Mass.)",1,1.3
+"Studies in conservation = Etudes de conservation",1,1
 "Studies in family planning",1,1
 "Studies in history and philosophy of biological and biomedical sciences",NA,NA
 "Studies in history and philosophy of science",1,1
@@ -6062,7 +6132,6 @@
 "System dynamics review",1,1.4
 "Systematic and applied microbiology",1,1
 "Systematic biology",1,1
-"Systematic entomology",1,1
 "Systematic parasitology",3,3
 "Systematic reviews",1,1
 "Systemic practice and action research",3,2.7
@@ -6088,6 +6157,7 @@
 "Temperature (Austin, Tex.)",1,1.333
 "Terapevticheskii arkhiv",2,2.667
 "Terra nova (Oxford, England)",1,1
+"Tertiary education and management",2,2
 "Test (Madrid, Spain)",2,1.3
 "Tetrahedron",3,2.1
 "Tetrahedron letters",3,2.3
@@ -6108,6 +6178,7 @@
 "The American journal of tropical medicine and hygiene",2,1.1
 "The American journal on addictions",1,1
 "The American political science review",1,1
+"The American statistician",1,1.5
 "The Angle orthodontist",1,1
 "The Annals of applied biology",2,1.2
 "The Annals of occupational hygiene",NA,NA
@@ -6148,6 +6219,7 @@
 "The Canadian journal of infectious diseases & medical microbiology = Journal canadien des maladies infectieuses et de la microbiologie medicale",2,2.8
 "The Canadian journal of statistics = Revue canadienne de statistique",2,2.1
 "The Canadian journal of urology",3,2.7
+"The Career development quarterly",2,1.7
 "The Clinical journal of pain",1,1
 "The Condor",NA,NA
 "The Critical quarterly",1,2
@@ -6157,7 +6229,7 @@
 "The Economic history review",1,1
 "The Economic record",2,2.9
 "The Egyptian heart journal : (EHJ) : official bulletin of the Egyptian Society of Cardiology",3,3.111
-"The European journal of developmental psychology",2,1.9
+"The European accounting review",1,1.1
 "The European journal of health economics : HEPAC : health economics in prevention and care",1,1
 "The European journal of neuroscience",2,1.6
 "The European journal of prosthodontics and restorative dentistry",2,2.5
@@ -6220,6 +6292,7 @@
 "The Journal of eukaryotic microbiology",2,2.2
 "The Journal of experimental biology",1,1
 "The Journal of experimental medicine",1,1
+"The Journal of finance",1,1
 "The Journal of foot and ankle surgery : official publication of the American College of Foot and Ankle Surgeons",2,1.9
 "The Journal of frailty & aging",1,1.75
 "The Journal of general physiology",1,1
@@ -6343,6 +6416,7 @@
 "The journal of allergy and clinical immunology. Global",2,2.5
 "The journal of applied laboratory medicine",2,2.25
 "The journal of climate change and health",1,1
+"The journal of comparative Germanic linguistics",2,1.3
 "The journal of contemporary dental practice",2,2.9
 "The journal of development studies",1,1
 "The journal of ethics",1,1.1
@@ -6586,6 +6660,7 @@
 "Urban climate",1,1
 "Urban forestry & urban greening",1,1
 "Urban rail transit",2,1.889
+"Urban studies (Edinburgh, Scotland)",1,1
 "Urban transformations",NA,NA
 "Urolithiasis",2,1.5
 "Urologia internationalis",3,2.1
@@ -6668,6 +6743,7 @@
 "Water, air, and soil pollution",2,2
 "Wear : an international journal on the science and technology of friction lubrication and wear",1,1
 "Web semantics (Online)",2,1.3
+"Weed Science",1,1
 "Weed research",1,1.3
 "Welding in the world",1,1.4
 "Wellbeing, space and society",1,1.333
@@ -6725,6 +6801,7 @@
 "Yeast (Chichester, England)",2,1.6
 "ZDM : the international journal on mathematics education",1,1
 "ZFA. Zeitschrift fur Allgemeinmedizin",4,3.5
+"ZFW - advances in economic geography",2,2
 "Zdravstveno varstvo",2,3
 "Zeitschrift fuer angewandte mathematik und physik",1,1
 "Zeitschrift fur Erziehungswissenschaft : ZfE",2,2
@@ -6762,7 +6839,6 @@
 "npj ocean sustainability",1,1
 "npj quantum materials",1,1
 "npj urban sustainability",1,1
-NA,NA,1.618
-NA,3,1.618
-NA,2,1.618
-NA,1,1.618
+NA,3,1.653
+NA,2,1.653
+NA,1,1.653
