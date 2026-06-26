@@ -151,11 +151,11 @@ def test_transform_files_counts_filters_and_enriches_schema(tmp_path: Path) -> N
                 "doi": "10.1000/example",
                 "n_review_round": "2",
                 "n_reviews": "4",
-                "first_review_date": "2020-01-20",
-                "last_review_date": "2020-01-30",
+                "first_review_date": "2020-01-07",
+                "last_review_date": "2020-01-10",
                 "n_reviewers": "3",
-                "date_first_accepted": "2020-01-15",
-                "review_cycle_delay": "20",
+                "date_first_accepted": "2020-01-05",
+                "review_cycle_delay": "3",
                 "review_finding_delay": "5",
                 "first_decision_delay": "10",
                 "final_decision_delay": "25",
@@ -193,7 +193,7 @@ def test_transform_files_counts_filters_and_enriches_schema(tmp_path: Path) -> N
     assert row["is_covid"] == "True"
     assert row["is_retracted"] == "True"
     assert row["article_date"] == "2020-02-02"
-    assert row["is_psych"] == "True"
+    assert "is_psych" not in row
     assert row["quartile_year"] == "Q1"
     assert row["asjc_all"] == "3203|1000"
     assert row["discipline_all"] == "social_sciences_and_humanities|multidisciplinary"
@@ -202,13 +202,66 @@ def test_transform_files_counts_filters_and_enriches_schema(tmp_path: Path) -> N
     assert row["publisher_group"] == "Example Group"
     assert row["publisher_conflict"] == "False"
     assert row["n_review_round"] == "2"
-    assert row["peer_review_delay"] == "31"
+    assert row["review_cycle_delay"] == "3"
+    assert row["review_finding_delay"] == "21"
+    assert row["first_decision_delay"] == "2"
+    assert row["final_decision_delay"] == "5"
+    assert row["first_review_delay"] == "23"
+    assert row["peer_review_delay"] == "8"
     assert row["npi_year"] == "1"
     assert row["open_access"] == "True"
     assert {r["stage"] for r in pl.read_csv(filters).to_dicts()} >= {
         "raw_records",
         "final_rows",
     }
+
+
+def test_peer_review_metadata_can_join_by_pmid_when_doi_is_absent(
+    tmp_path: Path,
+) -> None:
+    parsed = tmp_path / "parsed.jsonl"
+    parsed.write_text(
+        json.dumps(
+            {
+                "title": "Lifecycle peer review example",
+                "journal": "Example Journal",
+                "pubdate": "2020-03-01",
+                "article_date": "2020-02-01",
+                "history": {"received": "2020-01-01", "accepted": "2020-01-20"},
+                "publication_types": "D016428:Journal Article",
+                "issn_linking": "1234-567X",
+                "keywords": "",
+                "doi": "",
+                "pmid": "42",
+                "delete": False,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    peer_review = tmp_path / "peer_review.csv"
+    write_csv(
+        peer_review,
+        [
+            {
+                "pmid": "42",
+                "n_reviewers": "2",
+                "peer_review_delay": "19",
+            }
+        ],
+    )
+
+    output = tmp_path / "articles.parquet"
+    transform_files(
+        parsed,
+        output,
+        external=ExternalInputs(peer_review=peer_review),
+    )
+
+    row = read_output(output)[0]
+    assert row["doi"] == ""
+    assert row["n_reviewers"] == "2"
+    assert row["peer_review_delay"] == "19"
 
 
 def test_pubdate_fallback_used_when_article_date_missing() -> None:

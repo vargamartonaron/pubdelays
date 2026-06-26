@@ -14,6 +14,8 @@ doaj_csv = "data/raw_data/directory_of_open_access_journals/doaj_2025_05_15.csv"
 norwegian_list_csv = "data/raw_data/norwegian_publication_indicator/norwegian_list_2025_05_14.csv"
 retraction_watch_csv = "data/raw_data/retraction_watch/retraction_watch.csv"
 publisher_csv = "data/raw_data/publisher_metadata/publishers.csv"
+# Optional private/licensed metadata; not downloaded by this pipeline.
+peer_review_csv = "data/raw_data/peer_review/peer_review.csv"
 
 [external.download]
 doaj_url = "https://doaj.org/csv"
@@ -31,6 +33,7 @@ doaj = "data/processed_data/doaj.csv"
 norwegian_list = "data/processed_data/norwegian_list.csv"
 retraction_watch = "data/processed_data/retraction_watch.csv"
 publisher = "data/processed_data/publisher_metadata.csv"
+peer_review = "data/processed_data/peer_review.csv"
 pubmed_journals = "data/external/pubmed-journals.csv"
 
 [transform]
@@ -43,6 +46,22 @@ default_shards = 64
 processed_parquet = "data/processed_data/processed.parquet"
 processed_csv = "data/processed_data/processed.csv"
 summary_dir = "data/processed_data/summaries"
+filter_counts = "data/processed_data/filter_counts.csv"
+
+[analysis]
+cwd = "."
+input = "data/processed_data/processed.parquet"
+output_dir = "data/processed_data/analysis"
+command = ["python", "pubdelays_analysis/outputs.py", "--input", "data/processed_data/processed.parquet", "--table-dir", "data/processed_data/analysis_tables", "--figure-data-dir", "data/processed_data/analysis_figures"]
+
+[validation]
+report_dir = "data/processed_data/validation_tables"
+filtered_output = "data/processed_data/processed_validated.parquet"
+excluded_output = "data/processed_data/processed_validation_excluded.parquet"
+min_article_date = "2016-01-01"
+max_article_date = "2025-12-31"
+min_delay_days = 1
+max_delay_days = 1095
 
 [slurm]
 runner = "uv run pubdelays"

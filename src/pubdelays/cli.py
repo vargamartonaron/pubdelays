@@ -27,7 +27,7 @@ from typing import Any
 
 import polars as pl
 
-from pubdelays.aggregate import aggregate_articles, aggregate_outputs
+from pubdelays.aggregate import aggregate_articles, aggregate_outputs, collect_filter_counts
 from pubdelays.config import ConfigError, PipelineConfig, load_config
 from pubdelays.download import (
     DownloadError,
@@ -38,9 +38,13 @@ from pubdelays.download import (
     index_links,
     verify_md5_file,
 )
+from pubdelays.download import (
+    parse_md5_sidecar as parse_md5_sidecar,
+)
 from pubdelays.external import (
     preprocess_doaj,
     preprocess_npi,
+    preprocess_peer_review,
     preprocess_publisher,
     preprocess_retraction_watch,
     preprocess_scimago,
@@ -78,7 +82,7 @@ from pubdelays.slurm import (
 from pubdelays.summaries import derive_summary_tables
 from pubdelays.transform import ExternalInputs, transform_files
 from pubdelays.ui import err, info, ok, print_kv_table, section, warn
-from pubdelays.validation import compare_outputs
+from pubdelays.validation import compare_outputs, validate_analysis_output
 
 PUBMED_BASE_URLS = {
     "baseline": "https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/",
@@ -186,6 +190,10 @@ def list_json_paths(path_dir: str | Path) -> list[Path]:
     if not path.exists():
         return []
     return sorted(list(path.rglob("*.jsonl")) + list(path.rglob("*.json")))
+
+
+def limit_paths(paths: list[Path], limit: int | None) -> list[Path]:
+    return paths if limit is None else paths[:limit]
 
 
 def output_path_for(input_path: Path, output_dir: Path, fmt: str) -> Path:
@@ -591,7 +599,10 @@ def cmd_download(args: argparse.Namespace) -> int:
             else:
                 ok(f"downloaded {stats.output_path}")
 
-    md5_failures = [str(path) for path in sorted(output_dir.glob("*.md5")) if not verify_md5_file(path)]
+    requested_md5_paths = sorted(
+        output_path for _link, output_path in download_paths if output_path.suffix == ".md5" and output_path.exists()
+    )
+    md5_failures = [str(path) for path in requested_md5_paths if not verify_md5_file(path)]
     failures = [*download_errors, *md5_failures]
     append_manifest(
         manifest,
@@ -683,7 +694,8 @@ def external_inputs_from_args(args: argparse.Namespace) -> ExternalInputs:
         or config.path("external.processed.retraction_watch"),
         publisher=_optional_path(getattr(args, "publisher", None))
         or config.path("external.processed.publisher"),
-        peer_review=_optional_path(getattr(args, "peer_review", None)),
+        peer_review=_optional_path(getattr(args, "peer_review", None))
+        or config.path("external.processed.peer_review"),
     )
 
 
@@ -766,7 +778,7 @@ def cmd_transform(args: argparse.Namespace) -> int:
 
     input_path = cfg_path(args, "input", "pubmed.jsonl_dir")
     output_dir = cfg_path(args, "output_dir", "transform.article_shard_dir")
-    inputs = list_json_paths(input_path) if input_path.is_dir() else [input_path]
+    inputs = limit_paths(list_json_paths(input_path) if input_path.is_dir() else [input_path], args.limit)
     if not inputs:
         err(f"No JSON/JSONL files found in {input_path}")
         return 1
@@ -921,6 +933,18 @@ def cmd_external_publisher(args: argparse.Namespace) -> int:
     )
 
 
+def cmd_external_peer_review(args: argparse.Namespace) -> int:
+    input_path = cfg_path(args, "peer_review_input", "external.raw.peer_review_csv")
+    output = cfg_path(args, "peer_review_output", "external.processed.peer_review")
+    return _preprocess_stage(
+        args,
+        stage="external-peer-review",
+        input_path=input_path,
+        output_path=output,
+        func=lambda: preprocess_peer_review(input_path, output),
+    )
+
+
 def cmd_external_all(args: argparse.Namespace) -> int:
     section("external metadata")
     if getattr(args, "dry_run", False):
@@ -933,6 +957,7 @@ def cmd_external_all(args: argparse.Namespace) -> int:
                 "external-npi": config.path("external.processed.norwegian_list"),
                 "external-retraction-watch": config.path("external.processed.retraction_watch"),
                 "external-publisher": config.path("external.processed.publisher"),
+                "external-peer-review": config.path("external.processed.peer_review"),
             }
         )
         info("dry-run external-all: no files or manifest rows will be written")
@@ -947,6 +972,11 @@ def cmd_external_all(args: argparse.Namespace) -> int:
         cmd_external_publisher(args)
     else:
         warn(f"skip optional publisher metadata {publisher_input}")
+    peer_review_input = cfg_path(args, "peer_review_input", "external.raw.peer_review_csv")
+    if complete_file(peer_review_input):
+        cmd_external_peer_review(args)
+    else:
+        warn(f"skip optional peer-review metadata {peer_review_input}")
     return 0
 
 
@@ -1122,6 +1152,7 @@ def cmd_list_inputs(args: argparse.Namespace) -> int:
         paths = list_json_paths(input_dir)
     else:
         paths = sorted(input_dir.rglob(args.glob))
+    paths = limit_paths(paths, args.limit)
     output = Path(args.output)
     with atomic_output_path(output) as tmp_path:
         tmp_path.write_text("".join(f"{path}\n" for path in paths), encoding="utf-8")
@@ -1316,7 +1347,7 @@ def cmd_transform_shards(args: argparse.Namespace) -> int:
     ).parent
     manifest_dir.mkdir(parents=True, exist_ok=True)
     input_list = Path(args.input_list) if args.input_list else manifest_dir / "transform_inputs.txt"
-    paths = list_json_paths(json_dir)
+    paths = limit_paths(list_json_paths(json_dir), args.limit)
     if not paths:
         err(f"No JSON/JSONL files found in {json_dir}")
         return 1
@@ -1560,6 +1591,164 @@ def cmd_summaries(args: argparse.Namespace) -> int:
         raise
 
 
+def cmd_run_analysis(args: argparse.Namespace) -> int:
+    manifest = manifest_from_args(args)
+    started_at = utc_now()
+    start_seconds = time.time()
+    config = cfg(args)
+    cwd = cfg_path(args, "cwd", "analysis.cwd")
+    input_path = cfg_path(args, "input", "analysis.input")
+    output_dir = cfg_path(args, "output_dir", "analysis.output_dir")
+    command = list(getattr(args, "command", None) or config.get("analysis.command", []))
+    if not command:
+        raise ConfigError("analysis.command must contain at least one argument")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=cwd,
+            check=False,
+            text=True,
+            capture_output=True,
+            env={**os.environ, "PUBDELAYS_ANALYSIS_INPUT": str(input_path), "PUBDELAYS_ANALYSIS_OUTPUT_DIR": str(output_dir)},
+        )
+        metadata = {
+            "command": command,
+            "cwd": str(cwd),
+            "returncode": completed.returncode,
+            "stdout_tail": completed.stdout[-4000:],
+            "stderr_tail": completed.stderr[-4000:],
+        }
+        append_manifest(
+            manifest,
+            stage="run-analysis",
+            status="success" if completed.returncode == 0 else "failed",
+            input_path=input_path,
+            output_path=output_dir,
+            records=0,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            metadata=metadata,
+            error_message="" if completed.returncode == 0 else completed.stderr[-4000:],
+            checksum=not args.no_checksum,
+        )
+        if completed.stdout:
+            print(completed.stdout, end="")
+        if completed.stderr:
+            err(completed.stderr.rstrip())
+        return completed.returncode
+    except Exception as exc:
+        append_manifest(
+            manifest,
+            stage="run-analysis",
+            status="failed",
+            input_path=input_path,
+            output_path=output_dir,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            error_message=repr(exc),
+            checksum=not args.no_checksum,
+        )
+        raise
+
+
+def cmd_validate_analysis(args: argparse.Namespace) -> int:
+    manifest = manifest_from_args(args)
+    started_at = utc_now()
+    start_seconds = time.time()
+    input_path = cfg_path(args, "input", "aggregate.processed_parquet")
+    output_dir = cfg_path(args, "output_dir", "validation.report_dir")
+    filtered_output = cfg_path(args, "filtered_output", "validation.filtered_output") if args.filtered_output != "" else None
+    excluded_output = (
+        cfg_path(args, "excluded_output", "validation.excluded_output", "data/processed_data/excluded_validation.parquet")
+        if args.excluded_output != ""
+        else None
+    )
+    config = cfg(args)
+    try:
+        result = validate_analysis_output(
+            input_path,
+            output_dir,
+            filtered_output=filtered_output,
+            excluded_output=excluded_output,
+            min_article_date=date.fromisoformat(str(config.get("validation.min_article_date"))),
+            max_article_date=date.fromisoformat(str(config.get("validation.max_article_date"))),
+            min_delay_days=int(config.get("validation.min_delay_days")),
+            max_delay_days=int(config.get("validation.max_delay_days")),
+        )
+        append_manifest(
+            manifest,
+            stage="validate-analysis",
+            status="success",
+            input_path=input_path,
+            output_path=output_dir,
+            records=result.rows_kept,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            metadata={
+                "rows_in": result.rows_in,
+                "rows_kept": result.rows_kept,
+                "failed_checks": result.failed_checks,
+                "tables": {key: str(value) for key, value in result.tables.items()},
+                "filtered_output": str(result.filtered_output or ""),
+                "excluded_output": str(result.excluded_output or ""),
+            },
+            checksum=not args.no_checksum,
+        )
+        ok(f"wrote {len(result.tables)} validation tables to {output_dir}")
+        print_kv_table({"rows_in": result.rows_in, "rows_kept": result.rows_kept, "failed_checks": result.failed_checks})
+        return 1 if result.failed_checks else 0
+    except Exception as exc:
+        append_manifest(
+            manifest,
+            stage="validate-analysis",
+            status="failed",
+            input_path=input_path,
+            output_path=output_dir,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            error_message=repr(exc),
+            checksum=not args.no_checksum,
+        )
+        raise
+
+
+def cmd_filter_counts(args: argparse.Namespace) -> int:
+    manifest = manifest_from_args(args)
+    started_at = utc_now()
+    start_seconds = time.time()
+    input_path = cfg_path(args, "input", "transform.article_shard_dir")
+    output_path = cfg_path(args, "output", "aggregate.filter_counts")
+    try:
+        records = collect_filter_counts(input_path, output_path)
+        append_manifest(
+            manifest,
+            stage="filter-counts",
+            status="success",
+            input_path=input_path,
+            output_path=output_path,
+            records=records,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            checksum=not args.no_checksum,
+        )
+        ok(f"wrote filter counts to {output_path}")
+        return 0
+    except Exception as exc:
+        append_manifest(
+            manifest,
+            stage="filter-counts",
+            status="failed",
+            input_path=input_path,
+            output_path=output_path,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            error_message=repr(exc),
+            checksum=not args.no_checksum,
+        )
+        raise
+
+
 SLURM_STAGE_CONFIG = {
     "download": "download",
     "download-external": "download_external",
@@ -1735,6 +1924,8 @@ def build_slurm_job(args: argparse.Namespace, stage: str) -> tuple[SlurmJob, dic
             "--output",
             str(input_list),
         ]
+        if args.limit is not None:
+            command.extend(["--limit", str(args.limit)])
         metadata.update({"input_dir": str(input_dir), "input_list": str(input_list)})
         return SlurmJob(
             "pubdelays-prepare-transform",
@@ -1752,8 +1943,8 @@ def build_slurm_job(args: argparse.Namespace, stage: str) -> tuple[SlurmJob, dic
         use_existing_list = bool(getattr(args, "use_existing_input_list", False))
         metadata.update({"input_list": str(input_list), "shards": args.shards})
         if not use_existing_list:
-            paths = list_json_paths(input_dir)
-            metadata.update({"inputs": len(paths)})
+            paths = limit_paths(list_json_paths(input_dir), args.limit)
+            metadata.update({"inputs": len(paths), "limit": args.limit})
             if not paths and not args.dry_run:
                 raise RuntimeError(f"No JSON/JSONL files found in {input_dir}")
             if not args.dry_run:
@@ -2144,6 +2335,7 @@ def build_parser() -> argparse.ArgumentParser:
     transform.add_argument("--input", default=None)
     transform.add_argument("--output-dir", default=None)
     transform.add_argument("--jobs", type=int, default=1)
+    transform.add_argument("--limit", type=int, default=None, help="debug only: first N inputs")
     transform.add_argument("--format", choices=["parquet", "tsv", "csv"], default="parquet")
     add_external_args(transform)
     transform.set_defaults(func=cmd_transform)
@@ -2167,6 +2359,7 @@ def build_parser() -> argparse.ArgumentParser:
     transform_shards.add_argument("--output-dir", default=None)
     transform_shards.add_argument("--shards", type=int, default=64)
     transform_shards.add_argument("--jobs", type=int, default=None)
+    transform_shards.add_argument("--limit", type=int, default=None, help="debug only: first N inputs")
     transform_shards.add_argument("--format", choices=["parquet", "tsv", "csv"], default="parquet")
     add_dry_run_arg(transform_shards)
     add_external_args(transform_shards)
@@ -2214,12 +2407,48 @@ def build_parser() -> argparse.ArgumentParser:
     schema_cmd.set_defaults(func=cmd_schema)
 
     summaries = subparsers.add_parser(
-        "summaries", help="derive analysis summary tables from processed.parquet"
+        "summaries", help="derive lightweight summary tables from processed.parquet"
     )
     summaries.add_argument("--input", default=None)
     summaries.add_argument("--output-dir", default=None)
     add_common_stage_args(summaries)
     summaries.set_defaults(func=cmd_summaries)
+
+    run_analysis = subparsers.add_parser(
+        "run-analysis", help="run a configured study-specific analysis subprocess"
+    )
+    run_analysis.add_argument("--cwd", default=None)
+    run_analysis.add_argument("--input", default=None)
+    run_analysis.add_argument("--output-dir", default=None)
+    run_analysis.add_argument("--command", nargs="+", default=None)
+    add_common_stage_args(run_analysis)
+    run_analysis.set_defaults(func=cmd_run_analysis)
+
+    validate_analysis = subparsers.add_parser(
+        "validate-analysis", help="validate final processed output and write validation tables"
+    )
+    validate_analysis.add_argument("--input", default=None)
+    validate_analysis.add_argument("--output-dir", default=None)
+    validate_analysis.add_argument(
+        "--filtered-output",
+        default=None,
+        help="validated dataset path; pass an empty string to skip writing filtered output",
+    )
+    validate_analysis.add_argument(
+        "--excluded-output",
+        default=None,
+        help="excluded validation rows path; pass an empty string to skip writing excluded output",
+    )
+    add_common_stage_args(validate_analysis)
+    validate_analysis.set_defaults(func=cmd_validate_analysis)
+
+    filter_counts = subparsers.add_parser(
+        "filter-counts", help="aggregate transform .filters.csv sidecars"
+    )
+    filter_counts.add_argument("--input", default=None)
+    filter_counts.add_argument("--output", default=None)
+    add_common_stage_args(filter_counts)
+    filter_counts.set_defaults(func=cmd_filter_counts)
 
     download = subparsers.add_parser(
         "download", help="download PubMed baseline/updatefiles with MD5 verification"
@@ -2253,6 +2482,8 @@ def build_parser() -> argparse.ArgumentParser:
     external_all.add_argument("--output", default=None)  # accepted for common stage dispatch; ignored
     external_all.add_argument("--publisher-input", default=None)
     external_all.add_argument("--publisher-output", default=None)
+    external_all.add_argument("--peer-review-input", default=None)
+    external_all.add_argument("--peer-review-output", default=None)
     external_all.add_argument("--start-year", type=int, default=2015)
     external_all.add_argument("--end-year", type=int, default=2024)
     add_dry_run_arg(external_all)
@@ -2297,11 +2528,18 @@ def build_parser() -> argparse.ArgumentParser:
     add_common_stage_args(rw)
     rw.set_defaults(func=cmd_external_retraction_watch)
 
+    peer_review = subparsers.add_parser("external-peer-review", help="clean raw private peer-review CSV")
+    peer_review.add_argument("--peer-review-input", default=None)
+    peer_review.add_argument("--peer-review-output", default=None)
+    add_common_stage_args(peer_review)
+    peer_review.set_defaults(func=cmd_external_peer_review)
+
     list_inputs = subparsers.add_parser("list-inputs", help="write an input file list for SLURM arrays")
     list_inputs.add_argument("--input-dir", required=True)
     list_inputs.add_argument("--output", required=True)
     list_inputs.add_argument("--kind", choices=["xml", "json", "glob"], default="xml")
     list_inputs.add_argument("--glob", default="*")
+    list_inputs.add_argument("--limit", type=int, default=None, help="debug only: first N paths")
     list_inputs.set_defaults(func=cmd_list_inputs)
 
     slurm = subparsers.add_parser("slurm", help="submit pipeline stages to SLURM")

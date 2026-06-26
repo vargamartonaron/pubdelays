@@ -156,11 +156,16 @@ pubdelays aggregate-all --resume
 
 For a single custom output format, use `aggregate --output path/to/output.parquet`.
 
-Derive analysis summaries:
+Derive basic summaries, run the configured study-specific analysis process, write validation tables, and aggregate filter counts:
 
 ```bash
 pubdelays summaries --resume
+pubdelays run-analysis --resume
+pubdelays validate-analysis --resume
+pubdelays filter-counts --resume
 ```
+
+The core CLI only orchestrates analysis as a subprocess. Study-specific tables, figures, and models live under `pubdelays_analysis/`. Optional private peer-review metadata defaults to `data/processed_data/peer_review.csv` or can be supplied with `--peer-review` during transform.
 
 Inspect manifest:
 

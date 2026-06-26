@@ -7,6 +7,7 @@ import polars as pl
 from pubdelays.external import (
     preprocess_doaj,
     preprocess_npi,
+    preprocess_peer_review,
     preprocess_publisher,
     preprocess_retraction_watch,
     preprocess_scimago,
@@ -165,6 +166,32 @@ def test_scimago_preprocessor_repairs_unescaped_publisher_quotes(tmp_path: Path)
     data = rows(out)
     assert data[0]["issn_linking"] == "1234567X"
     assert data[0]["scimago_categories"] == "Medicine (miscellaneous) (Q4)"
+
+
+def test_peer_review_preprocessor_aggregates_raw_events_by_doi(tmp_path: Path) -> None:
+    raw = tmp_path / "peer_review.csv"
+    raw.write_text(
+        "date_accepted,doi,date_reviewed,review_round\n"
+        "2020-02-01, HTTPS://DOI.ORG/10.1000/Example ,2020-01-10,1\n"
+        "2020-02-01,10.1000/example,2020-01-20,2\n"
+        ",10.2000/other,2012-12-31,1\n"
+        ",10.3000/future,2026-01-01,1\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "peer_review_out.csv"
+
+    assert preprocess_peer_review(raw, out) == 1
+    data = rows(out)
+    assert data[0] == {
+        "doi": "10.1000/example",
+        "n_review_round": "2",
+        "n_reviews": "2",
+        "first_review_date": "2020-01-10",
+        "last_review_date": "2020-01-20",
+        "n_reviewers": "2",
+        "date_first_accepted": "2020-02-01",
+        "review_cycle_delay": "10",
+    }
 
 
 def test_doaj_preprocessor_selects_expected_columns(tmp_path: Path) -> None:

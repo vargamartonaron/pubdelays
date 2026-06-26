@@ -24,6 +24,7 @@ doaj_csv = "data/raw_data/directory_of_open_access_journals/doaj.csv"
 norwegian_list_csv = "data/raw_data/norwegian_publication_indicator/npi.csv"
 retraction_watch_csv = "data/raw_data/retraction_watch/retraction_watch.csv"
 publisher_csv = "data/raw_data/publisher_metadata/publishers.csv"
+peer_review_csv = "data/raw_data/peer_review/peer_review.csv"
 
 [external.processed]
 scimago = "data/processed_data/scimago.csv"
@@ -32,6 +33,7 @@ doaj = "data/processed_data/doaj.csv"
 norwegian_list = "data/processed_data/norwegian_list.csv"
 retraction_watch = "data/processed_data/retraction_watch.csv"
 publisher = "data/processed_data/publisher_metadata.csv"
+peer_review = "data/processed_data/peer_review.csv"
 pubmed_journals = "data/external/pubmed-journals.csv"
 
 [transform]
@@ -44,6 +46,21 @@ default_shards = 2
 processed_parquet = "data/processed_data/processed.parquet"
 processed_csv = "data/processed_data/processed.csv"
 summary_dir = "data/processed_data/summaries"
+filter_counts = "data/processed_data/filter_counts.csv"
+
+[analysis]
+cwd = "."
+input = "data/processed_data/processed.parquet"
+output_dir = "data/processed_data/analysis"
+command = ["python", "pubdelays_analysis/outputs.py", "--input", "data/processed_data/processed.parquet", "--table-dir", "data/processed_data/analysis_tables", "--figure-data-dir", "data/processed_data/analysis_figures"]
+
+[validation]
+report_dir = "data/processed_data/validation_tables"
+filtered_output = "data/processed_data/processed_validated.parquet"
+min_article_date = "2016-01-01"
+max_article_date = "2025-06-01"
+min_delay_days = 1
+max_delay_days = 1095
 """.strip(),
         encoding="utf-8",
     )
@@ -76,13 +93,30 @@ def test_parse_dry_run_does_not_write_outputs(tmp_path: Path, capsys: object) ->
     assert not (tmp_path / "data/temp_data/pubmed/jsonl").exists()
 
 
-def test_transform_shards_dry_run_does_not_write_input_list(tmp_path: Path) -> None:
+def test_transform_shards_dry_run_does_not_write_input_list(tmp_path: Path, capsys: object) -> None:
     config = write_config(tmp_path / "config.toml")
     json_dir = tmp_path / "data/temp_data/pubmed/jsonl"
     json_dir.mkdir(parents=True)
-    (json_dir / "records.jsonl").write_text("{}\n", encoding="utf-8")
+    (json_dir / "records-1.jsonl").write_text("{}\n", encoding="utf-8")
+    (json_dir / "records-2.jsonl").write_text("{}\n", encoding="utf-8")
 
-    code = main(["--config", str(config), "transform-shards", "--dry-run", "--jobs", "1"])
+    code = main(["--config", str(config), "transform-shards", "--dry-run", "--jobs", "1", "--limit", "1"])
+    output = capsys.readouterr().out
 
     assert code == 0
+    assert "files=1" in output
     assert not (tmp_path / "data/manifests/transform_inputs.txt").exists()
+
+
+def test_transform_limit_arguments_are_accepted() -> None:
+    parser = build_parser()
+
+    transform = parser.parse_args(["transform", "--limit", "2"])
+    transform_shards = parser.parse_args(["transform-shards", "--limit", "2"])
+    list_inputs = parser.parse_args(
+        ["list-inputs", "--input-dir", "data", "--output", "inputs.txt", "--limit", "2"]
+    )
+
+    assert transform.limit == 2
+    assert transform_shards.limit == 2
+    assert list_inputs.limit == 2

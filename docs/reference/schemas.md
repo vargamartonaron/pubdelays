@@ -71,7 +71,6 @@ articles-shard-00063-of-00064.parquet
 | `article_date_raw` | dates | Raw ArticleDate-derived date before fallback. | ISO date or empty |
 | `publication_date_source` | dates | Source for `article_date`. | `article_date`, `pubdate`, or empty |
 | `acceptance_delay` | outcomes | Accepted minus received. | days |
-| `is_psych` | flags | First ASJC code is in the psychology range. | `True`/`False` |
 | `is_mega` | flags | Linking ISSN is in the configured megajournal set. | `True`/`False` |
 | `issn_linking` | identifiers | Normalized PubMed linking ISSN. | ISSN without punctuation |
 | `h_index_year` | journal metadata | SCImago h-index for the article year. | integer string |
@@ -118,8 +117,14 @@ articles-shard-00063-of-00064.parquet
 | `first_review_delay` | optional peer review | First-review delay from the optional peer-review table. | days or empty |
 | `peer_review_delay` | optional peer review | Total peer-review delay from the optional peer-review table. | days or empty |
 
-Validate a produced dataset with:
+Validate a produced dataset's column contract with:
 
 ```bash
 pubdelays schema --input data/processed_data/processed.parquet
+```
+
+Run final-output quality validation with:
+
+```bash
+pubdelays validate-analysis --input data/processed_data/processed.parquet
 ```

@@ -87,9 +87,18 @@ pubdelays transform-shards \
 pubdelays validate-shards --shards 64 --format parquet
 pubdelays aggregate-all --resume
 pubdelays summaries --resume
+pubdelays run-analysis --resume
+pubdelays validate-analysis --resume
+pubdelays filter-counts --resume
 ```
 
-`transform-shards` accepts external path overrides and optional peer-review metadata:
+`run-analysis` runs the configured study-specific command from `[analysis]`, captures stdout/stderr, and records the subprocess status in the manifest. The core CLI does not encode analysis semantics such as GAMs or plot definitions.
+
+`validate-analysis` writes final-output validation tables for delay outliers, missingness/range checks, missingness mechanisms, journal counts, article counts by time, COVID counts, and Web of Science/NPI discipline agreement. It can also write kept rows to `processed_validated.parquet` and excluded rows to `processed_validation_excluded.parquet` instead of overwriting `processed.csv` in place.
+
+`filter-counts` aggregates transform `.filters.csv` sidecars into one row-count/drop-count audit table.
+
+`transform` and `transform-shards` accept `--limit N` for small debug runs. `transform-shards` also accepts external path overrides and optional peer-review metadata:
 
 ```bash
 pubdelays transform-shards \
@@ -98,7 +107,7 @@ pubdelays transform-shards \
   --resume
 ```
 
-The optional peer-review table is joined by `doi`, `pmid`, or `title` when those keys are available.
+Run `external-peer-review` to clean the raw private event table from `external.raw.peer_review_csv` into `data/processed_data/peer_review.csv`. The transform then joins that processed peer-review table by `doi`, `pmid`, or `title` when those keys are available and derives the process-data-local delay columns from article and review dates. No private peer-review data is bundled with the repository.
 
 ## Manifest subcommands
 

@@ -16,8 +16,7 @@ publication_date = article_date if present else pubdate
 
 Rows with missing `article_date` but usable `pubdate` are retained when all other date checks pass. The transform records the source in `publication_date_source`.
 
-!!! warning "Regression hazard"
-    Do not restore the old behavior that dropped every row missing `article_date`. The fallback is covered by transform and end-to-end tests.
+The fallback is covered by transform and end-to-end tests.
 
 ## Journal eligibility
 

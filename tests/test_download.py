@@ -29,6 +29,61 @@ def sidecar_text(path: Path, data: bytes) -> str:
     return f"MD5 ({path.name}) = {digest}\n"
 
 
+def write_minimal_download_config(path: Path, manifest_path: Path | None = None) -> Path:
+    path.write_text(
+        f"""
+[pipeline]
+manifest = "{manifest_path or 'data/manifests/pipeline.sqlite'}"
+parse_inputs = "data/manifests/parse_inputs.txt"
+transform_inputs = "data/manifests/transform_inputs.txt"
+[pubmed]
+xml_dir = "data/raw_data/pubmed/xmls"
+jsonl_dir = "data/temp_data/pubmed/jsonl"
+[external.raw]
+scimago_dir = "data/raw_data/scimago"
+web_of_science_csv = "data/raw_data/web_of_science/wos.csv"
+doaj_csv = "data/raw_data/directory_of_open_access_journals/doaj.csv"
+norwegian_list_csv = "data/raw_data/norwegian_publication_indicator/npi.csv"
+retraction_watch_csv = "data/raw_data/retraction_watch/retraction_watch.csv"
+publisher_csv = "data/raw_data/publisher_metadata/publishers.csv"
+peer_review_csv = "data/raw_data/peer_review/peer_review.csv"
+[external.processed]
+scimago = "data/processed_data/scimago.csv"
+web_of_science = "data/processed_data/web_of_science.csv"
+doaj = "data/processed_data/doaj.csv"
+norwegian_list = "data/processed_data/norwegian_list.csv"
+retraction_watch = "data/processed_data/retraction_watch.csv"
+publisher = "data/processed_data/publisher_metadata.csv"
+peer_review = "data/processed_data/peer_review.csv"
+pubmed_journals = "data/external/pubmed-journals.csv"
+[transform]
+article_shard_dir = "data/temp_data/article_parquet"
+article_shard_format = "parquet"
+min_received = "2013-01-01"
+default_shards = 64
+[aggregate]
+processed_parquet = "data/processed_data/processed.parquet"
+processed_csv = "data/processed_data/processed.csv"
+summary_dir = "data/processed_data/summaries"
+filter_counts = "data/processed_data/filter_counts.csv"
+[analysis]
+cwd = "."
+input = "data/processed_data/processed.parquet"
+output_dir = "data/processed_data/analysis"
+command = ["python", "pubdelays_analysis/outputs.py"]
+[validation]
+report_dir = "data/processed_data/validation_tables"
+filtered_output = "data/processed_data/processed_validated.parquet"
+min_article_date = "2016-01-01"
+max_article_date = "2025-06-01"
+min_delay_days = 1
+max_delay_days = 1095
+""".strip(),
+        encoding="utf-8",
+    )
+    return path
+
+
 def test_parse_md5_sidecar_accepts_ncbi_and_unix_formats() -> None:
     digest = "0" * 32
     assert parse_md5_sidecar(f"MD5 (pubmed.xml.gz) = {digest}\n") == (
@@ -170,6 +225,35 @@ def test_download_index_links_ignores_path_like_hrefs(monkeypatch: pytest.Monkey
     assert index_links("https://example.test/") == ["pubmed25n0001.xml.gz", "pubmed25n0001.xml.gz.md5"]
 
 
+def test_download_verifies_only_requested_md5_sidecars(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config_path = write_minimal_download_config(tmp_path / "config.toml")
+    output_dir = tmp_path / "data/raw_data/pubmed/xmls"
+    output_dir.mkdir(parents=True)
+    stale_sidecar = output_dir / "stale.xml.gz.md5"
+    stale_sidecar.write_text("not a current download\n", encoding="utf-8")
+    verified: list[Path] = []
+
+    def fake_download_file(url: str, output_path: Path, **_kwargs: object) -> object:
+        output_path.write_text("downloaded\n", encoding="utf-8")
+        return type("Stats", (), {"downloaded": True, "skipped": False, "output_path": str(output_path)})()
+
+    def fake_verify_md5_file(path: Path) -> bool:
+        verified.append(path)
+        return path.name == "pubmed25n0001.xml.gz.md5"
+
+    monkeypatch.setattr("pubdelays.cli.index_links", lambda _url: ["pubmed25n0001.xml.gz", "pubmed25n0001.xml.gz.md5"])
+    monkeypatch.setattr("pubdelays.cli.download_file", fake_download_file)
+    monkeypatch.setattr("pubdelays.cli.verify_md5_file", fake_verify_md5_file)
+
+    code = main(["--config", str(config_path), "download", "--source", "baseline", "--jobs", "1"])
+
+    assert code == 0
+    assert verified == [output_dir / "pubmed25n0001.xml.gz.md5"]
+    assert stale_sidecar not in verified
+
+
 def test_download_path_rejects_links_outside_output_dir(tmp_path: Path) -> None:
     assert contained_download_path(tmp_path, "pubmed25n0001.xml.gz") == tmp_path / "pubmed25n0001.xml.gz"
 
@@ -197,6 +281,7 @@ doaj_csv = "data/raw_data/directory_of_open_access_journals/doaj.csv"
 norwegian_list_csv = "data/raw_data/norwegian_publication_indicator/npi.csv"
 retraction_watch_csv = "data/raw_data/retraction_watch/retraction_watch.csv"
 publisher_csv = "data/raw_data/publisher_metadata/publishers.csv"
+peer_review_csv = "data/raw_data/peer_review/peer_review.csv"
 [external.download]
 doaj_url = "https://example.test/doaj.csv"
 retraction_watch_url = "https://example.test/rw.csv"
@@ -209,6 +294,7 @@ doaj = "data/processed_data/doaj.csv"
 norwegian_list = "data/processed_data/norwegian_list.csv"
 retraction_watch = "data/processed_data/retraction_watch.csv"
 publisher = "data/processed_data/publisher_metadata.csv"
+peer_review = "data/processed_data/peer_review.csv"
 pubmed_journals = "data/external/pubmed-journals.csv"
 [transform]
 article_shard_dir = "data/temp_data/article_parquet"
@@ -219,6 +305,21 @@ default_shards = 64
 processed_parquet = "data/processed_data/processed.parquet"
 processed_csv = "data/processed_data/processed.csv"
 summary_dir = "data/processed_data/summaries"
+filter_counts = "data/processed_data/filter_counts.csv"
+
+[analysis]
+cwd = "."
+input = "data/processed_data/processed.parquet"
+output_dir = "data/processed_data/analysis"
+command = ["python", "pubdelays_analysis/outputs.py", "--input", "data/processed_data/processed.parquet", "--table-dir", "data/processed_data/analysis_tables", "--figure-data-dir", "data/processed_data/analysis_figures"]
+
+[validation]
+report_dir = "data/processed_data/validation_tables"
+filtered_output = "data/processed_data/processed_validated.parquet"
+min_article_date = "2016-01-01"
+max_article_date = "2025-06-01"
+min_delay_days = 1
+max_delay_days = 1095
 """.strip(),
         encoding="utf-8",
     )
@@ -251,6 +352,7 @@ doaj_csv = "data/raw_data/directory_of_open_access_journals/doaj.csv"
 norwegian_list_csv = "data/raw_data/norwegian_publication_indicator/npi.csv"
 retraction_watch_csv = "data/raw_data/retraction_watch/retraction_watch.csv"
 publisher_csv = "data/raw_data/publisher_metadata/publishers.csv"
+peer_review_csv = "data/raw_data/peer_review/peer_review.csv"
 [external.download]
 scimago_url_template = "https://www.scimagojr.com/journalrank.php?out=xls"
 [external.processed]
@@ -260,6 +362,7 @@ doaj = "data/processed_data/doaj.csv"
 norwegian_list = "data/processed_data/norwegian_list.csv"
 retraction_watch = "data/processed_data/retraction_watch.csv"
 publisher = "data/processed_data/publisher_metadata.csv"
+peer_review = "data/processed_data/peer_review.csv"
 pubmed_journals = "data/external/pubmed-journals.csv"
 [transform]
 article_shard_dir = "data/temp_data/article_parquet"
@@ -270,6 +373,21 @@ default_shards = 64
 processed_parquet = "data/processed_data/processed.parquet"
 processed_csv = "data/processed_data/processed.csv"
 summary_dir = "data/processed_data/summaries"
+filter_counts = "data/processed_data/filter_counts.csv"
+
+[analysis]
+cwd = "."
+input = "data/processed_data/processed.parquet"
+output_dir = "data/processed_data/analysis"
+command = ["python", "pubdelays_analysis/outputs.py", "--input", "data/processed_data/processed.parquet", "--table-dir", "data/processed_data/analysis_tables", "--figure-data-dir", "data/processed_data/analysis_figures"]
+
+[validation]
+report_dir = "data/processed_data/validation_tables"
+filtered_output = "data/processed_data/processed_validated.parquet"
+min_article_date = "2016-01-01"
+max_article_date = "2025-06-01"
+min_delay_days = 1
+max_delay_days = 1095
 """.strip(),
         encoding="utf-8",
     )
@@ -296,6 +414,7 @@ doaj_csv = "data/raw_data/directory_of_open_access_journals/doaj.csv"
 norwegian_list_csv = "data/raw_data/norwegian_publication_indicator/npi.csv"
 retraction_watch_csv = "data/raw_data/retraction_watch/retraction_watch.csv"
 publisher_csv = "data/raw_data/publisher_metadata/publishers.csv"
+peer_review_csv = "data/raw_data/peer_review/peer_review.csv"
 [external.download]
 doaj_url = "https://example.test/doaj.csv"
 retraction_watch_url = "https://example.test/rw.csv"
@@ -306,6 +425,7 @@ doaj = "data/processed_data/doaj.csv"
 norwegian_list = "data/processed_data/norwegian_list.csv"
 retraction_watch = "data/processed_data/retraction_watch.csv"
 publisher = "data/processed_data/publisher_metadata.csv"
+peer_review = "data/processed_data/peer_review.csv"
 pubmed_journals = "data/external/pubmed-journals.csv"
 [transform]
 article_shard_dir = "data/temp_data/article_parquet"
@@ -316,6 +436,21 @@ default_shards = 64
 processed_parquet = "data/processed_data/processed.parquet"
 processed_csv = "data/processed_data/processed.csv"
 summary_dir = "data/processed_data/summaries"
+filter_counts = "data/processed_data/filter_counts.csv"
+
+[analysis]
+cwd = "."
+input = "data/processed_data/processed.parquet"
+output_dir = "data/processed_data/analysis"
+command = ["python", "pubdelays_analysis/outputs.py", "--input", "data/processed_data/processed.parquet", "--table-dir", "data/processed_data/analysis_tables", "--figure-data-dir", "data/processed_data/analysis_figures"]
+
+[validation]
+report_dir = "data/processed_data/validation_tables"
+filtered_output = "data/processed_data/processed_validated.parquet"
+min_article_date = "2016-01-01"
+max_article_date = "2025-06-01"
+min_delay_days = 1
+max_delay_days = 1095
 """.strip(),
         encoding="utf-8",
     )
@@ -344,6 +479,7 @@ doaj_csv = "data/raw_data/directory_of_open_access_journals/doaj.csv"
 norwegian_list_csv = "data/raw_data/norwegian_publication_indicator/npi.csv"
 retraction_watch_csv = "data/raw_data/retraction_watch/retraction_watch.csv"
 publisher_csv = "data/raw_data/publisher_metadata/publishers.csv"
+peer_review_csv = "data/raw_data/peer_review/peer_review.csv"
 [external.download]
 doaj_url = "https://example.test/doaj.csv"
 [external.processed]
@@ -353,6 +489,7 @@ doaj = "data/processed_data/doaj.csv"
 norwegian_list = "data/processed_data/norwegian_list.csv"
 retraction_watch = "data/processed_data/retraction_watch.csv"
 publisher = "data/processed_data/publisher_metadata.csv"
+peer_review = "data/processed_data/peer_review.csv"
 pubmed_journals = "data/external/pubmed-journals.csv"
 [transform]
 article_shard_dir = "data/temp_data/article_parquet"
@@ -363,6 +500,21 @@ default_shards = 64
 processed_parquet = "data/processed_data/processed.parquet"
 processed_csv = "data/processed_data/processed.csv"
 summary_dir = "data/processed_data/summaries"
+filter_counts = "data/processed_data/filter_counts.csv"
+
+[analysis]
+cwd = "."
+input = "data/processed_data/processed.parquet"
+output_dir = "data/processed_data/analysis"
+command = ["python", "pubdelays_analysis/outputs.py", "--input", "data/processed_data/processed.parquet", "--table-dir", "data/processed_data/analysis_tables", "--figure-data-dir", "data/processed_data/analysis_figures"]
+
+[validation]
+report_dir = "data/processed_data/validation_tables"
+filtered_output = "data/processed_data/processed_validated.parquet"
+min_article_date = "2016-01-01"
+max_article_date = "2025-06-01"
+min_delay_days = 1
+max_delay_days = 1095
 """.strip(),
         encoding="utf-8",
     )
@@ -392,6 +544,7 @@ doaj_csv = "data/raw_data/directory_of_open_access_journals/doaj.csv"
 norwegian_list_csv = "data/raw_data/norwegian_publication_indicator/npi.csv"
 retraction_watch_csv = "data/raw_data/retraction_watch/retraction_watch.csv"
 publisher_csv = "data/raw_data/publisher_metadata/publishers.csv"
+peer_review_csv = "data/raw_data/peer_review/peer_review.csv"
 [external.download]
 doaj_url = "https://example.test/doaj.csv"
 [external.processed]
@@ -401,6 +554,7 @@ doaj = "data/processed_data/doaj.csv"
 norwegian_list = "data/processed_data/norwegian_list.csv"
 retraction_watch = "data/processed_data/retraction_watch.csv"
 publisher = "data/processed_data/publisher_metadata.csv"
+peer_review = "data/processed_data/peer_review.csv"
 pubmed_journals = "data/external/pubmed-journals.csv"
 [transform]
 article_shard_dir = "data/temp_data/article_parquet"
@@ -411,6 +565,21 @@ default_shards = 64
 processed_parquet = "data/processed_data/processed.parquet"
 processed_csv = "data/processed_data/processed.csv"
 summary_dir = "data/processed_data/summaries"
+filter_counts = "data/processed_data/filter_counts.csv"
+
+[analysis]
+cwd = "."
+input = "data/processed_data/processed.parquet"
+output_dir = "data/processed_data/analysis"
+command = ["python", "pubdelays_analysis/outputs.py", "--input", "data/processed_data/processed.parquet", "--table-dir", "data/processed_data/analysis_tables", "--figure-data-dir", "data/processed_data/analysis_figures"]
+
+[validation]
+report_dir = "data/processed_data/validation_tables"
+filtered_output = "data/processed_data/processed_validated.parquet"
+min_article_date = "2016-01-01"
+max_article_date = "2025-06-01"
+min_delay_days = 1
+max_delay_days = 1095
 """.strip(),
         encoding="utf-8",
     )

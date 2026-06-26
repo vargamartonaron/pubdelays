@@ -97,11 +97,31 @@ def config_copy() -> dict[str, object]:
                 "norwegian_list": "data/processed_data/norwegian_list.csv",
                 "retraction_watch": "data/processed_data/retraction_watch.csv",
                 "publisher": "data/processed_data/publisher_metadata.csv",
+                "peer_review": "data/processed_data/peer_review.csv",
                 "pubmed_journals": "data/external/pubmed-journals.csv",
             },
         },
         "transform": {"article_shard_dir": "", "article_shard_format": "parquet", "min_received": "2013-01-01", "default_shards": 2},
-        "aggregate": {"processed_parquet": "", "processed_csv": "", "summary_dir": "data/processed_data/summaries"},
+        "aggregate": {
+            "processed_parquet": "",
+            "processed_csv": "",
+            "summary_dir": "data/processed_data/summaries",
+            "filter_counts": "data/processed_data/filter_counts.csv",
+        },
+        "analysis": {
+            "cwd": ".",
+            "input": "data/processed_data/processed.parquet",
+            "output_dir": "data/processed_data/analysis",
+            "command": ["python", "pubdelays_analysis/outputs.py"],
+        },
+        "validation": {
+            "report_dir": "data/processed_data/validation_tables",
+            "filtered_output": "data/processed_data/processed_validated.parquet",
+            "min_article_date": "2016-01-01",
+            "max_article_date": "2025-06-01",
+            "min_delay_days": 1,
+            "max_delay_days": 1095,
+        },
     }
 
 
@@ -123,6 +143,7 @@ def configure(tmp_path: Path) -> Path:
     raw["norwegian_list_csv"] = "data/raw_data/norwegian_publication_indicator/npi.csv"
     raw["retraction_watch_csv"] = "data/raw_data/retraction_watch/retraction_watch.csv"
     raw["publisher_csv"] = "data/raw_data/publisher_metadata/publishers.csv"
+    raw["peer_review_csv"] = "data/raw_data/peer_review/peer_review.csv"
     return write_config(tmp_path / "config.toml", values)
 
 
@@ -190,7 +211,7 @@ def test_tiny_end_to_end_pipeline(tmp_path: Path) -> None:
     assert row["acceptance_delay"] == "32"
     assert row["publication_delay"] == "59"
     assert row["quartile_year"] == "Q1"
-    assert row["is_psych"] == "True"
+    assert "is_psych" not in row
     assert row["open_access"] == "True"
     assert row["publisher"] == "Example Publisher"
     assert row["publisher_group"] == "Example Group"

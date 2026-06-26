@@ -19,7 +19,7 @@ data/raw_data/directory_of_open_access_journals/    DOAJ journal CSV
 data/raw_data/norwegian_publication_indicator/      Norwegian Publication Indicator CSV
 data/raw_data/retraction_watch/retraction_watch.csv Retraction Watch CSV
 data/raw_data/publisher_metadata/publishers.csv     Optional publisher enrichment
-path/to/private-peer-review.csv                     Optional peer-review metadata supplied with --peer-review
+data/raw_data/peer_review/peer_review.csv           Optional private raw peer-review event CSV
 ```
 
 The parser reads `.xml.gz` directly; do not decompress PubMed baseline files unless storage constraints require it.
@@ -41,7 +41,13 @@ data/manifests/slurm/transform-shards/*.sqlite       Per-task transform manifest
 ```text
 data/processed_data/processed.parquet                Canonical analysis_dataset_v1 dataset
 data/processed_data/processed.csv                    CSV export
-data/processed_data/summaries/                       Derived analysis summary tables
+data/processed_data/summaries/                       Lightweight summary tables
+data/processed_data/analysis/                        Generic configured analysis output directory
+data/processed_data/analysis_tables/                 Analysis script tables
+data/processed_data/analysis_figures/                Analysis script CSV datasets and SVG previews
+data/processed_data/validation_tables/               Final-output validation tables
+data/processed_data/filter_counts.csv                Aggregate transform filter counts
+data/processed_data/processed_validated.parquet      Optional validation-filtered dataset
 data/processed_data/*.csv                            Processed external lookup tables
 ```
 

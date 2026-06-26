@@ -61,12 +61,14 @@ REQUIRED_PATH_KEYS = (
     "external.raw.norwegian_list_csv",
     "external.raw.retraction_watch_csv",
     "external.raw.publisher_csv",
+    "external.raw.peer_review_csv",
     "external.processed.scimago",
     "external.processed.web_of_science",
     "external.processed.doaj",
     "external.processed.norwegian_list",
     "external.processed.retraction_watch",
     "external.processed.publisher",
+    "external.processed.peer_review",
     "external.processed.pubmed_journals",
     "transform.article_shard_dir",
     "transform.article_shard_format",
@@ -74,9 +76,15 @@ REQUIRED_PATH_KEYS = (
     "aggregate.processed_parquet",
     "aggregate.processed_csv",
     "aggregate.summary_dir",
+    "aggregate.filter_counts",
+    "analysis.cwd",
+    "analysis.input",
+    "analysis.output_dir",
+    "validation.report_dir",
+    "validation.filtered_output",
 )
 
-REQUIRED_SECTIONS = ("pipeline", "pubmed", "external", "transform", "aggregate")
+REQUIRED_SECTIONS = ("pipeline", "pubmed", "external", "transform", "aggregate", "analysis", "validation")
 SUPPORTED_ARTICLE_SHARD_FORMATS = {"parquet", "tsv", "csv"}
 
 
@@ -126,13 +134,25 @@ def validate_config_values(config_path: Path, values: Mapping[str, Any]) -> None
         supported = ", ".join(sorted(SUPPORTED_ARTICLE_SHARD_FORMATS))
         raise _config_error(config_path, "transform.article_shard_format", f"expected one of: {supported}")
 
-    min_received = _get_required(config_path, values, "transform.min_received")
-    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", min_received):
-        raise _config_error(config_path, "transform.min_received", "expected YYYY-MM-DD date")
-    try:
-        date.fromisoformat(min_received)
-    except ValueError as exc:
-        raise _config_error(config_path, "transform.min_received", "expected YYYY-MM-DD date") from exc
+    for key in ("transform.min_received", "validation.min_article_date", "validation.max_article_date"):
+        value = _get_required(config_path, values, key)
+        if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise _config_error(config_path, key, "expected YYYY-MM-DD date")
+        try:
+            date.fromisoformat(value)
+        except ValueError as exc:
+            raise _config_error(config_path, key, "expected YYYY-MM-DD date") from exc
+
+    min_delay = _get_required(config_path, values, "validation.min_delay_days")
+    max_delay = _get_required(config_path, values, "validation.max_delay_days")
+    for key, value in (
+        ("validation.min_delay_days", min_delay),
+        ("validation.max_delay_days", max_delay),
+    ):
+        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            raise _config_error(config_path, key, "expected a non-negative integer")
+    if min_delay > max_delay:
+        raise _config_error(config_path, "validation.min_delay_days", "expected <= validation.max_delay_days")
 
 
 def load_config(path: Path | str = "config/default.toml") -> PipelineConfig:

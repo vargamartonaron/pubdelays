@@ -114,6 +114,10 @@ def date_expr(expr: pl.Expr) -> pl.Expr:
     return exact.fill_null(year_month).fill_null(year)
 
 
+def day_delta_expr(later: pl.Expr, earlier: pl.Expr) -> pl.Expr:
+    return (later - earlier).dt.total_days()
+
+
 def publication_types_expr(expr: pl.Expr) -> pl.Expr:
     return (
         expr.cast(pl.Utf8, strict=False)
@@ -302,11 +306,18 @@ def _left_join_peer_review(df: pl.DataFrame, path: Path | None) -> pl.DataFrame:
     right = _load_external(path)
     if right.is_empty():
         return df
+    if "review_delay" in right.columns and "review_cycle_delay" not in right.columns:
+        right = right.rename({"review_delay": "review_cycle_delay"})
     for key in ("doi", "pmid", "title"):
         if key in df.columns and key in right.columns:
             if key == "doi":
                 right = right.with_columns(doi_expr(pl.col("doi")).alias("doi"))
-            return df.join(right.unique(subset=[key], keep="first", maintain_order=True), on=key, how="left", coalesce=True)
+            return df.join(
+                right.unique(subset=[key], keep="first", maintain_order=True),
+                on=key,
+                how="left",
+                coalesce=True,
+            )
     return df
 
 
@@ -401,10 +412,18 @@ def year_lookup_expr(df: pl.DataFrame, prefix: str, year_column: str) -> pl.Expr
 
 
 def _write_filter_counts(path: Path, counts: Mapping[str, int]) -> None:
+    stages = list(FILTER_STAGES)
+    kept = [int(counts.get(stage, 0)) for stage in stages]
+    previous = [kept[index - 1] if index else kept[index] for index in range(len(kept))]
+    dropped = [max(before - after, 0) for before, after in zip(previous, kept, strict=True)]
+    kept_percent = [round(after / before * 100, 4) if before else 100.0 for before, after in zip(previous, kept, strict=True)]
     df = pl.DataFrame(
         {
-            "stage": list(FILTER_STAGES),
-            "count": [int(counts.get(stage, 0)) for stage in FILTER_STAGES],
+            "stage": stages,
+            "count": kept,
+            "dropped": dropped,
+            "drop_reason": stages,
+            "kept_percent": kept_percent,
         }
     )
     write_frame(path, df)
@@ -596,15 +615,44 @@ def transform_files(
             df = df.with_columns(pl.lit(None).cast(pl.Utf8).alias(col))
 
     df = df.with_columns(
+        date_expr(pl.col("first_review_date")).alias("_first_review_date"),
+        date_expr(pl.col("last_review_date")).alias("_last_review_date"),
+        date_expr(pl.col("date_first_accepted")).alias("_date_first_accepted"),
+    ).with_columns(
+        day_delta_expr(pl.col("_date_first_accepted"), pl.col("received_date"))
+        .fill_null(pl.col("review_finding_delay").cast(pl.Int64, strict=False))
+        .alias("review_finding_delay"),
+        day_delta_expr(pl.col("_first_review_date"), pl.col("_date_first_accepted"))
+        .fill_null(pl.col("first_decision_delay").cast(pl.Int64, strict=False))
+        .alias("first_decision_delay"),
+        day_delta_expr(pl.col("accepted_date"), pl.col("_last_review_date"))
+        .fill_null(pl.col("final_decision_delay").cast(pl.Int64, strict=False))
+        .alias("final_decision_delay"),
+        day_delta_expr(pl.col("_first_review_date"), pl.col("received_date"))
+        .fill_null(pl.col("first_review_delay").cast(pl.Int64, strict=False))
+        .alias("first_review_delay"),
+        day_delta_expr(pl.col("accepted_date"), pl.col("_first_review_date"))
+        .fill_null(pl.col("peer_review_delay").cast(pl.Int64, strict=False))
+        .alias("peer_review_delay"),
+        pl.col("_first_review_date")
+        .dt.strftime("%Y-%m-%d")
+        .fill_null(pl.col("first_review_date"))
+        .alias("first_review_date"),
+        pl.col("_last_review_date")
+        .dt.strftime("%Y-%m-%d")
+        .fill_null(pl.col("last_review_date"))
+        .alias("last_review_date"),
+        pl.col("_date_first_accepted")
+        .dt.strftime("%Y-%m-%d")
+        .fill_null(pl.col("date_first_accepted"))
+        .alias("date_first_accepted"),
+    )
+
+    df = df.with_columns(
         year_lookup_expr(df, "quartile", "article_year").alias("quartile_year"),
         year_lookup_expr(df, "rank", "article_year").alias("rank_year"),
         year_lookup_expr(df, "h_index", "article_year").alias("h_index_year"),
         year_lookup_expr(df, "npi_level", "article_year").alias("npi_year"),
-        pl.col("asjc")
-        .cast(pl.Int64, strict=False)
-        .is_between(3200, 3207)
-        .fill_null(False)
-        .alias("is_psych_bool"),
         pl.col("issn_linking").is_in(list(MEGAJOURNAL_ISSNS)).alias("is_mega_bool"),
         (
             (
@@ -642,7 +690,6 @@ def transform_files(
         .otherwise(pl.col("article_date"))
         .alias("article_date"),
         bool_text_expr(pl.col("is_covid_bool")).alias("is_covid"),
-        bool_text_expr(pl.col("is_psych_bool")).alias("is_psych"),
         bool_text_expr(pl.col("is_mega_bool")).alias("is_mega"),
         bool_text_expr(pl.col("open_access_bool")).alias("open_access"),
         bool_text_expr(pl.col("is_retracted_bool")).alias("is_retracted"),

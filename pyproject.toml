@@ -34,6 +34,7 @@ pythonpath = ["src"]
 [tool.ruff]
 line-length = 110
 src = ["src", "tests"]
+extend-exclude = ["colleague", "legacy"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

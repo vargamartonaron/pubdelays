@@ -49,7 +49,8 @@ This page maps CLI commands to source functions and files. Use it when you need 
 | `transform_files()` | `src/pubdelays/transform/articles.py` | Parsed records plus `ExternalInputs`. | Canonical article shard and filter counts. |
 | `_read_json_frames()` | `src/pubdelays/transform/articles.py` | JSONL/JSON paths. | Polars DataFrame with diagonal-relaxed concatenation. |
 | `_left_join_external()` | `src/pubdelays/transform/articles.py` | ISSN-keyed lookup. | Enriched dataframe. |
-| `_left_join_peer_review()` | `src/pubdelays/transform/articles.py` | Optional private peer-review table. | Peer-review columns by `doi`, `pmid`, or `title`. |
+| `preprocess_peer_review()` | `src/pubdelays/external/peer_review.py` | Optional private raw peer-review event CSV. | DOI-keyed review dates, counts, and review-cycle delay. |
+| `_left_join_peer_review()` | `src/pubdelays/transform/articles.py` | Processed private peer-review table. | Peer-review columns by `doi`, `pmid`, or `title`; transform derives article-date-based review delays. |
 | `validate_article_shards()` | `src/pubdelays/shards.py` | Article shard directory. | Completeness/schema validation result. |
 | `aggregate_outputs()` | `src/pubdelays/aggregate.py` | Article shards. | Final Parquet and CSV outputs. |
 | `derive_summary_tables()` | `src/pubdelays/summaries.py` | Final processed dataset. | Summary CSV tables. |

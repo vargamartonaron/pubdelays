@@ -103,4 +103,8 @@ pubdelays compare-outputs \
   --output data/processed_data/validation/differential.csv
 ```
 
-Review total row count, unique DOI/PMID counts if available, column order, filter counts, join cardinalities, missingness in key fields, and distributions of `acceptance_delay` and `publication_delay`.
+Review total row count, unique DOI/PMID counts if available, column order, filter counts, join cardinalities, missingness in key fields, validation excluded rows, and distributions of `acceptance_delay` and `publication_delay`.
+
+## Methods note
+
+The final analysis dataset keeps records that pass the configured article-date and delay bounds. `validate-analysis` writes the kept dataset and the excluded rows separately, plus `excluded_by_reason.csv`, excluded-row breakdowns by quartile, discipline, NPI level, and open-access status, and missingness tables grouped by year, quartile, discipline, NPI level, open-access status, and pairwise field co-missingness. Use these outputs when describing data handling and missing-data mechanisms in the methods section.

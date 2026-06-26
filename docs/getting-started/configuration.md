@@ -20,10 +20,12 @@ Relative paths in the config are repository-relative because `PipelineConfig.pat
 | --- | --- | --- |
 | `[pipeline]` | `manifest`, `parse_inputs`, `transform_inputs` | Manifest commands, SLURM lists, transform sharding |
 | `[pubmed]` | `xml_dir`, `jsonl_dir` | Download, parse, validate |
-| `[external.raw]` | SCImago, WoS, DOAJ, NPI, Retraction Watch, publisher raw paths | `external-*`, `preflight` |
-| `[external.processed]` | Normalized lookup outputs | Transform joins |
+| `[external.raw]` | SCImago, WoS, DOAJ, NPI, Retraction Watch, publisher, optional peer-review raw paths | `external-*`, `preflight` |
+| `[external.processed]` | Normalized lookup outputs, including optional peer-review metadata | Transform joins |
 | `[transform]` | `article_shard_dir`, `article_shard_format`, `min_received`, `default_shards` | Transform and shard validation |
-| `[aggregate]` | `processed_parquet`, `processed_csv`, `summary_dir` | Aggregation and summaries |
+| `[aggregate]` | `processed_parquet`, `processed_csv`, `summary_dir`, `filter_counts` | Aggregation, summaries, filter-count aggregation |
+| `[analysis]` | `cwd`, `input`, `output_dir`, `command` | Generic `run-analysis` subprocess orchestration |
+| `[validation]` | Validation report/output paths and date/delay bounds | `validate-analysis` |
 | `[slurm]` and `[slurm.resources.*]` | runner, logs, array cap, stage resources | SLURM script generation |
 
 ## Minimal path override pattern

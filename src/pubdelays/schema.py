@@ -55,7 +55,6 @@ CANONICAL_ARTICLE_COLUMNS: tuple[str, ...] = (
     "article_date_raw",
     "publication_date_source",
     "acceptance_delay",
-    "is_psych",
     "is_mega",
     "issn_linking",
     "h_index_year",

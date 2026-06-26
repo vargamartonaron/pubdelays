@@ -1,4 +1,4 @@
-"""Derived analysis summary tables."""
+"""Derived, pipeline-generic summary tables."""
 
 from __future__ import annotations
 
@@ -48,8 +48,12 @@ def _base_frame(path: Path) -> pl.DataFrame:
     )
 
 
+def _text(df: pl.DataFrame) -> pl.DataFrame:
+    return df.with_columns(pl.all().cast(pl.Utf8, strict=False).fill_null(""))
+
+
 def _summary(df: pl.DataFrame, keys: list[str]) -> pl.DataFrame:
-    return (
+    return _text(
         df.group_by(keys, maintain_order=True)
         .agg(
             pl.len().alias("articles"),
@@ -57,7 +61,22 @@ def _summary(df: pl.DataFrame, keys: list[str]) -> pl.DataFrame:
             pl.col("publication_delay_days").mean().round(2).alias("publication_delay_mean_days"),
         )
         .sort(keys)
-        .with_columns(pl.all().cast(pl.Utf8, strict=False).fill_null(""))
+    )
+
+
+def _delay_distribution(df: pl.DataFrame) -> pl.DataFrame:
+    return _text(
+        df.group_by("article_year", maintain_order=True)
+        .agg(
+            pl.len().alias("articles"),
+            pl.col("acceptance_delay_days").median().alias("acceptance_delay_median_days"),
+            pl.col("publication_delay_days").median().alias("publication_delay_median_days"),
+            pl.col("acceptance_delay_days").quantile(0.25).alias("acceptance_delay_p25_days"),
+            pl.col("acceptance_delay_days").quantile(0.75).alias("acceptance_delay_p75_days"),
+            pl.col("publication_delay_days").quantile(0.25).alias("publication_delay_p25_days"),
+            pl.col("publication_delay_days").quantile(0.75).alias("publication_delay_p75_days"),
+        )
+        .sort("article_year")
     )
 
 
@@ -74,20 +93,7 @@ def derive_summary_tables(processed_path: Path, output_dir: Path) -> dict[str, P
             df.filter((pl.col("publisher") != "") | (pl.col("publisher_group") != "")),
             ["publisher_group", "publisher", "article_year"],
         ),
-        "delay_distribution": (
-            df.group_by("article_year", maintain_order=True)
-            .agg(
-                pl.len().alias("articles"),
-                pl.col("acceptance_delay_days").median().alias("acceptance_delay_median_days"),
-                pl.col("publication_delay_days").median().alias("publication_delay_median_days"),
-                pl.col("acceptance_delay_days").quantile(0.25).alias("acceptance_delay_p25_days"),
-                pl.col("acceptance_delay_days").quantile(0.75).alias("acceptance_delay_p75_days"),
-                pl.col("publication_delay_days").quantile(0.25).alias("publication_delay_p25_days"),
-                pl.col("publication_delay_days").quantile(0.75).alias("publication_delay_p75_days"),
-            )
-            .sort("article_year")
-            .with_columns(pl.all().cast(pl.Utf8, strict=False).fill_null(""))
-        ),
+        "delay_distribution": _delay_distribution(df),
     }
 
     outputs: dict[str, Path] = {}

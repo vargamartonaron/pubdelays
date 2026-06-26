@@ -52,6 +52,10 @@ prompts/
 scripts/swival-review.sh
 
 
+# Local reference/scratch inputs
+colleague/
+process_data_local_temp.R
+
 # Raw/generated data
 data/raw_data/**
 data/temp_data/**
