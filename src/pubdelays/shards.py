@@ -6,9 +6,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-import polars as pl
-
-from pubdelays.schema import CANONICAL_ARTICLE_COLUMNS
+from pubdelays.schema import validate_analysis_dataset_schema
 
 SUPPORTED_ARTICLE_SHARD_FORMATS: tuple[str, ...] = ("parquet", "tsv", "csv")
 ARTICLE_SHARD_RE = re.compile(
@@ -107,22 +105,13 @@ def iter_article_paths(input_path: Path) -> list[Path]:
     return []
 
 
-def _scan_schema(path: Path, fmt: str) -> pl.Schema:
-    if fmt == "parquet":
-        return pl.scan_parquet(path).collect_schema()
-    if fmt == "tsv":
-        return pl.scan_csv(path, separator="\t", infer_schema_length=10000).collect_schema()
-    return pl.scan_csv(path, infer_schema_length=10000).collect_schema()
-
-
 def _schema_error(shard: ArticleShard) -> str | None:
     try:
-        schema = _scan_schema(shard.path, shard.format)
+        valid, errors = validate_analysis_dataset_schema(shard.path)
     except Exception as exc:  # noqa: BLE001 - surface Polars IO/schema failures.
         return f"unreadable shard {shard.path}: {exc}"
-    missing = [col for col in CANONICAL_ARTICLE_COLUMNS if col not in schema]
-    if missing:
-        return f"schema-invalid shard {shard.path}: missing columns {', '.join(missing)}"
+    if not valid:
+        return f"schema-invalid shard {shard.path}: {'; '.join(errors)}"
     return None
 
 

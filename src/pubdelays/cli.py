@@ -28,7 +28,7 @@ from typing import Any
 import polars as pl
 
 from pubdelays.aggregate import aggregate_articles, aggregate_outputs, collect_filter_counts
-from pubdelays.config import ConfigError, PipelineConfig, load_config
+from pubdelays.config import ConfigError, PipelineConfig, load_config, resolve_config_path
 from pubdelays.download import (
     DownloadError,
     contained_download_path,
@@ -1095,7 +1095,7 @@ def cmd_aggregate_all(args: argparse.Namespace) -> int:
             )
             return 1
     try:
-        if args.resume and all(complete_file(path) for path in outputs):
+        if args.resume and all(complete_analysis_output(path) for path in outputs):
             append_manifest(
                 manifest,
                 stage="aggregate-all",
@@ -1233,6 +1233,18 @@ def complete_article_shard(path: Path) -> bool:
     try:
         valid, _errors = validate_analysis_dataset_schema(path)
     except Exception:  # noqa: BLE001 - stale/corrupt shards must be regenerated.
+        return False
+    return valid
+
+
+def complete_analysis_output(path: Path) -> bool:
+    """Return true when an aggregate output is present and schema-current."""
+
+    if not complete_file(path):
+        return False
+    try:
+        valid, _errors = validate_analysis_dataset_schema(path)
+    except Exception:  # noqa: BLE001 - stale/corrupt outputs must be regenerated.
         return False
     return valid
 
@@ -1791,7 +1803,7 @@ def slurm_runner(args: argparse.Namespace, config: PipelineConfig) -> list[str]:
 
 def slurm_log_dir(config: PipelineConfig, args: argparse.Namespace) -> Path:
     value = args.log_dir or str(config.get("slurm.log_dir", "logs/slurm"))
-    return config.root / value if not Path(value).is_absolute() else Path(value)
+    return resolve_config_path(value, config.root)
 
 
 def slurm_config_arg(args: argparse.Namespace) -> str:

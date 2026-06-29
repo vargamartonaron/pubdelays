@@ -98,6 +98,17 @@ def test_validate_shards_detects_schema_invalid_shard(tmp_path: Path) -> None:
     assert any("schema-invalid shard" in error for error in result.errors)
 
 
+def test_validate_shards_detects_unexpected_stale_schema_column(tmp_path: Path) -> None:
+    path = write_shard(tmp_path, 0, 1)
+    df = pl.read_parquet(path).with_columns(pl.lit("").alias("is_psych"))
+    df.write_parquet(path)
+
+    result = validate_article_shards(tmp_path, expected_shards=1, expected_format="parquet")
+
+    assert not result.ok
+    assert any("unexpected columns: is_psych" in error for error in result.errors)
+
+
 def test_aggregate_all_blocks_incomplete_shard_set(tmp_path: Path) -> None:
     write_shard(tmp_path, 0, 2)
     parquet = tmp_path / "processed.parquet"
@@ -125,6 +136,46 @@ def test_aggregate_all_blocks_incomplete_shard_set(tmp_path: Path) -> None:
     assert code == 1
     assert not parquet.exists()
     assert not csv.exists()
+
+
+def test_aggregate_all_resume_regenerates_stale_schema_outputs(tmp_path: Path) -> None:
+    write_shard(tmp_path, 0, 1)
+    parquet = tmp_path / "processed.parquet"
+    csv = tmp_path / "processed.csv"
+    manifest = tmp_path / "manifest.sqlite"
+    stale_columns = [
+        column
+        for column in CANONICAL_ARTICLE_COLUMNS
+        if column not in {"n_review_round", "peer_review_delay"}
+    ]
+    stale = pl.DataFrame({column: [""] for column in stale_columns}).with_columns(
+        pl.lit("").alias("is_psych")
+    )
+    stale.write_parquet(parquet)
+    stale.write_csv(csv)
+
+    code = main(
+        [
+            "aggregate-all",
+            "--input",
+            str(tmp_path),
+            "--parquet",
+            str(parquet),
+            "--csv",
+            str(csv),
+            "--manifest",
+            str(manifest),
+            "--shards",
+            "1",
+            "--format",
+            "parquet",
+            "--resume",
+        ]
+    )
+
+    assert code == 0
+    assert pl.read_parquet(parquet).columns == list(CANONICAL_ARTICLE_COLUMNS)
+    assert pl.read_csv(csv).columns == list(CANONICAL_ARTICLE_COLUMNS)
 
 
 def test_transform_shard_writes_empty_canonical_shard_for_empty_selection(

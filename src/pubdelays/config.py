@@ -7,7 +7,7 @@ import tomllib
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 
@@ -36,8 +36,21 @@ class PipelineConfig:
         value = self.get(dotted, default)
         if value is None:
             raise KeyError(f"missing config path: {dotted}")
-        path = Path(str(value)).expanduser()
-        return path if path.is_absolute() else self.root / path
+        return resolve_config_path(str(value), self.root)
+
+
+def is_absolute_path_string(value: str) -> bool:
+    """Return true for native absolute paths and Windows drive/UNC paths."""
+
+    path = Path(value).expanduser()
+    return path.is_absolute() or PureWindowsPath(value).is_absolute()
+
+
+def resolve_config_path(value: str, root: Path) -> Path:
+    """Resolve a config path without mangling Windows absolute path strings."""
+
+    path = Path(value).expanduser()
+    return path if is_absolute_path_string(value) else root / path
 
 
 def discover_repo_root(start: Path | None = None) -> Path:

@@ -13,6 +13,12 @@ pubdelays --config config/default.toml preflight
 ```
 
 Relative paths in the config are repository-relative because `PipelineConfig.path()` resolves them from the config root logic in `src/pubdelays/config.py`.
+Windows absolute paths are preserved instead of being treated as repository-relative paths. In TOML, prefer forward slashes or literal strings for Windows paths:
+
+```toml
+manifest = 'C:\pubdelays\data\manifests\pipeline.sqlite'
+xml_dir = "C:/pubdelays/data/raw_data/pubmed/xmls"
+```
 
 ## Important sections
 

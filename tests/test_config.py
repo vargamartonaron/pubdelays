@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 from pubdelays.cli import main
-from pubdelays.config import ConfigError, load_config
+from pubdelays.config import ConfigError, PipelineConfig, is_absolute_path_string, load_config
 
 VALID_CONFIG: dict[str, Any] = {
     "pipeline": {
@@ -110,6 +110,23 @@ def test_load_config_accepts_custom_valid_config(tmp_path: Path) -> None:
     config = load_config(config_path)
 
     assert config.path("pipeline.manifest") == tmp_path / "data/manifests/pipeline.sqlite"
+
+
+@pytest.mark.parametrize(
+    "path_text",
+    [
+        r"C:\pubdelays\data\manifests\pipeline.sqlite",
+        r"C:/pubdelays/data/manifests/pipeline.sqlite",
+        r"\\server\share\pubdelays\data\pipeline.sqlite",
+    ],
+)
+def test_config_paths_preserve_windows_absolute_strings(tmp_path: Path, path_text: str) -> None:
+    config = PipelineConfig(root=tmp_path, values={"pipeline": {"manifest": path_text}})
+
+    resolved = config.path("pipeline.manifest")
+
+    assert is_absolute_path_string(path_text)
+    assert str(resolved) == path_text
 
 
 @pytest.mark.parametrize(
