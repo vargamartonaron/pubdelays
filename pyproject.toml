@@ -23,6 +23,7 @@ docs = [
 
 [project.scripts]
 pubdelays = "pubdelays.cli:main"
+pubdelays-pipeline = "pubdelays.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

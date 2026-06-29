@@ -158,6 +158,44 @@ def test_transform_shard_writes_empty_canonical_shard_for_empty_selection(
     assert pl.read_csv(filters)["count"].to_list() == [0] * len(FILTER_STAGES)
 
 
+def test_transform_shard_resume_regenerates_stale_schema_shard(tmp_path: Path) -> None:
+    parsed = tmp_path / "parsed.json"
+    parsed.write_text("[]\n", encoding="utf-8")
+    input_list = tmp_path / "transform_inputs.txt"
+    input_list.write_text(f"{parsed}\n", encoding="utf-8")
+    output_dir = tmp_path / "article_shards"
+    output_dir.mkdir()
+    output = output_dir / "articles-shard-00000-of-00001.parquet"
+    stale_columns = [
+        column
+        for column in CANONICAL_ARTICLE_COLUMNS
+        if column not in {"n_review_round", "peer_review_delay"}
+    ]
+    pl.DataFrame({column: [""] for column in stale_columns}).write_parquet(output)
+
+    code = main(
+        [
+            "transform-shard",
+            "--input-list",
+            str(input_list),
+            "--output-dir",
+            str(output_dir),
+            "--shard-index",
+            "0",
+            "--shards",
+            "1",
+            "--manifest",
+            str(tmp_path / "manifest.sqlite"),
+            "--resume",
+        ]
+    )
+
+    assert code == 0
+    rewritten = pl.read_parquet(output)
+    assert rewritten.columns == list(CANONICAL_ARTICLE_COLUMNS)
+    assert rewritten.is_empty()
+
+
 def test_validate_shards_cli_uses_same_validator(tmp_path: Path) -> None:
     write_shard(tmp_path, 0, 1)
 

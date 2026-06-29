@@ -1225,6 +1225,18 @@ def transform_shard_payload_to_namespace(payload: dict[str, Any]) -> argparse.Na
     return argparse.Namespace(**payload)
 
 
+def complete_article_shard(path: Path) -> bool:
+    """Return true when a transform shard is present and schema-current."""
+
+    if not complete_file(path):
+        return False
+    try:
+        valid, _errors = validate_analysis_dataset_schema(path)
+    except Exception:  # noqa: BLE001 - stale/corrupt shards must be regenerated.
+        return False
+    return valid
+
+
 def cmd_transform_shard(args: argparse.Namespace) -> int:
     manifest = manifest_from_args(args)
     started_at = utc_now()
@@ -1237,7 +1249,7 @@ def cmd_transform_shard(args: argparse.Namespace) -> int:
     filters_path = output_dir / f"articles-shard-{args.shard_index:05d}-of-{args.shards:05d}.filters.csv"
 
     if not selected:
-        if args.resume and complete_file(output_path):
+        if args.resume and complete_article_shard(output_path):
             append_manifest(
                 manifest,
                 stage="transform-shard",
@@ -1285,7 +1297,7 @@ def cmd_transform_shard(args: argparse.Namespace) -> int:
         )
         ok(f"transform-shard {args.shard_index}/{args.shards}: wrote empty {output_path}")
         return 0
-    if args.resume and complete_file(output_path):
+    if args.resume and complete_article_shard(output_path):
         append_manifest(
             manifest,
             stage="transform-shard",
