@@ -25,6 +25,7 @@ icon: octicons/gear-16
 | `aggregate.processed_csv` | `data/processed_data/processed.csv` | `aggregate-all` CSV export. |
 | `aggregate.summary_dir` | `data/processed_data/summaries` | `summaries`. |
 | `aggregate.filter_counts` | `data/processed_data/filter_counts.csv` | `filter-counts`. |
+| `quality.report_dir` | `data/processed_data/quality` | Long-form Parquet quality tables and compact CSV debriefs. |
 | `analysis.cwd` | `.` | Working directory for `run-analysis`. |
 | `analysis.input` | `data/processed_data/processed.parquet` | Default input exposed to analysis subprocesses. |
 | `analysis.output_dir` | `data/processed_data/analysis` | Default output directory for `run-analysis`. |

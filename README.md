@@ -163,9 +163,15 @@ pubdelays summaries --resume
 pubdelays run-analysis --resume
 pubdelays validate-analysis --resume
 pubdelays filter-counts --resume
+pubdelays quality-report
 ```
 
 The core CLI only orchestrates analysis as a subprocess. Study-specific tables, figures, and models live under `pubdelays_analysis/`. Optional private peer-review metadata defaults to `data/processed_data/peer_review.csv` or can be supplied with `--peer-review` during transform.
+
+`quality-report` aggregates per-shard diagnostics captured before and after every
+filter, reports match coverage for each external source overall and by year, and
+writes final all-variable missingness, distributions, and pairwise marginal
+missingness under `data/processed_data/quality/`.
 
 Inspect manifest:
 
@@ -236,3 +242,8 @@ Two semantic safeguards are covered by tests:
 
 1. Missing `article_date` falls back to `pubdate` for `publication_delay`.
 2. Ceased journals are filtered against the article publication year.
+
+Run `pubdelays smoke-live --pubmed-files 1` for an isolated real-source check
+using the newest PubMed baseline XML/MD5 pair plus current DOAJ and Retraction Watch
+data. Generate the canonical variable-source table with
+`pubdelays provenance --format markdown`.

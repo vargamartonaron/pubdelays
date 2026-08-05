@@ -62,6 +62,8 @@ from pubdelays.manifest import (
 )
 from pubdelays.parser.medline import parse_medline_xml
 from pubdelays.paths import expected_input_paths, expected_output_paths
+from pubdelays.provenance import render_provenance, validate_provenance, write_provenance
+from pubdelays.quality import build_quality_report
 from pubdelays.schema import (
     ANALYSIS_DATASET_VERSION,
     CANONICAL_ARTICLE_COLUMNS,
@@ -79,6 +81,7 @@ from pubdelays.slurm import (
     query_max_array_size,
     submit_sbatch,
 )
+from pubdelays.smoke import run_live_smoke
 from pubdelays.summaries import derive_summary_tables
 from pubdelays.transform import ExternalInputs, transform_files
 from pubdelays.ui import err, info, ok, print_kv_table, section, warn
@@ -554,7 +557,7 @@ def cmd_download(args: argparse.Namespace) -> int:
     try:
         links = index_links(base_url)
         if args.limit is not None:
-            links = links[: args.limit]
+            links = links[-args.limit :] if args.newest else links[: args.limit]
         download_paths = [(link, contained_download_path(output_dir, link)) for link in links]
     except (DownloadError, OSError, ValueError) as exc:
         append_manifest(
@@ -744,6 +747,7 @@ def cmd_transform_one(args: argparse.Namespace) -> int:
             metadata={
                 "counts": dict(result.counts),
                 "filters_path": str(result.filters_path or ""),
+                "quality_path": str(result.quality_path or ""),
             },
             checksum=not args.no_checksum,
         )
@@ -1259,6 +1263,7 @@ def cmd_transform_shard(args: argparse.Namespace) -> int:
     output_dir = cfg_path(args, "output_dir", "transform.article_shard_dir")
     output_path = expected_article_shard_path(output_dir, args.shard_index, args.shards, args.format)
     filters_path = output_dir / f"articles-shard-{args.shard_index:05d}-of-{args.shards:05d}.filters.csv"
+    quality_path = output_dir / f"articles-shard-{args.shard_index:05d}-of-{args.shards:05d}.quality.parquet"
 
     if not selected:
         if args.resume and complete_article_shard(output_path):
@@ -1287,7 +1292,31 @@ def cmd_transform_shard(args: argparse.Namespace) -> int:
         )
         write_frame(
             filters_path,
-            pl.DataFrame({"stage": list(FILTER_STAGES), "count": [0 for _ in FILTER_STAGES]}),
+            pl.DataFrame(
+                {
+                    "stage": list(FILTER_STAGES),
+                    "count": [0 for _ in FILTER_STAGES],
+                    "dropped": [0 for _ in FILTER_STAGES],
+                    "drop_reason": list(FILTER_STAGES),
+                    "kept_percent": [100.0 for _ in FILTER_STAGES],
+                }
+            ),
+        )
+        write_frame(
+            quality_path,
+            pl.DataFrame(
+                {
+                    "record_type": [],
+                    "checkpoint": [],
+                    "source": [],
+                    "year": [],
+                    "variable": [],
+                    "metric": [],
+                    "numerator": [],
+                    "denominator": [],
+                    "value": [],
+                }
+            ),
         )
         append_manifest(
             manifest,
@@ -1349,6 +1378,7 @@ def cmd_transform_shard(args: argparse.Namespace) -> int:
             "shard_index": args.shard_index,
             "shards": args.shards,
             "inputs": len(selected),
+            "quality_path": str(result.quality_path or ""),
         },
         checksum=not args.no_checksum,
     )
@@ -1578,6 +1608,40 @@ def cmd_schema(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_provenance(args: argparse.Namespace) -> int:
+    errors = validate_provenance()
+    if errors:
+        for error in errors:
+            err(error)
+        return 1
+    if args.output:
+        write_provenance(Path(args.output), args.format)
+        ok(f"wrote variable provenance to {args.output}")
+    else:
+        print(render_provenance(args.format), end="")
+    return 0
+
+
+def cmd_smoke_live(args: argparse.Namespace) -> int:
+    result = run_live_smoke(
+        cfg(args),
+        Path(args.workspace),
+        pubmed_files=args.pubmed_files,
+        jobs=args.jobs,
+        shards=args.shards,
+        resume=args.resume,
+    )
+    ok(f"live smoke passed with {result.rows} processed rows")
+    print_kv_table(
+        {
+            "workspace": str(result.workspace),
+            "debrief": str(result.debrief_path),
+            "sources": result.sources,
+        }
+    )
+    return 0
+
+
 def cmd_summaries(args: argparse.Namespace) -> int:
     manifest = manifest_from_args(args)
     started_at = utc_now()
@@ -1765,6 +1829,46 @@ def cmd_filter_counts(args: argparse.Namespace) -> int:
             status="failed",
             input_path=input_path,
             output_path=output_path,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            error_message=repr(exc),
+            checksum=not args.no_checksum,
+        )
+        raise
+
+
+def cmd_quality_report(args: argparse.Namespace) -> int:
+    manifest = manifest_from_args(args)
+    started_at = utc_now()
+    start_seconds = time.time()
+    input_dir = cfg_path(args, "input", "transform.article_shard_dir")
+    dataset = cfg_path(args, "dataset", "aggregate.processed_parquet")
+    output_dir = cfg_path(
+        args, "output_dir", "quality.report_dir", "data/processed_data/quality"
+    )
+    try:
+        result = build_quality_report(input_dir, dataset, output_dir)
+        append_manifest(
+            manifest,
+            stage="quality-report",
+            status="success",
+            input_path=dataset,
+            output_path=output_dir,
+            records=result.rows,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            metadata={"input_dir": str(input_dir), "tables": {key: str(value) for key, value in result.tables.items()}},
+            checksum=not args.no_checksum,
+        )
+        ok(f"wrote {len(result.tables)} quality tables to {output_dir}")
+        return 0
+    except Exception as exc:
+        append_manifest(
+            manifest,
+            stage="quality-report",
+            status="failed",
+            input_path=dataset,
+            output_path=output_dir,
             started_at=started_at,
             start_seconds=start_seconds,
             error_message=repr(exc),
@@ -2052,9 +2156,6 @@ def _split_job_array(job: SlurmJob, chunks: list[tuple[int, int]]) -> list[Slurm
         chunk_label = f"-chunk{idx:0{width}d}" if total > 1 else ""
         array_spec = f"0-{end - start}"
         setup = [f"PUBDELAYS_ARRAY_TASK_OFFSET={start}", *job.setup] if start else job.setup
-        # Only the first chunk gets the incoming dependency; subsequent chunks
-        # run in parallel with it.
-        dep = job.dependency if idx == 1 else None
         jobs.append(
             SlurmJob(
                 name=f"{job.name}{chunk_label}",
@@ -2063,7 +2164,7 @@ def _split_job_array(job: SlurmJob, chunks: list[tuple[int, int]]) -> list[Slurm
                 log_dir=job.log_dir,
                 array=array_spec,
                 array_throttle=job.array_throttle,
-                dependency=dep,
+                dependency=job.dependency,
                 setup=setup,
             )
         )
@@ -2426,9 +2527,26 @@ def build_parser() -> argparse.ArgumentParser:
     compare_outputs_p.add_argument("--output", default="data/processed_data/validation/differential.csv")
     compare_outputs_p.set_defaults(func=cmd_compare_outputs)
 
-    schema_cmd = subparsers.add_parser("schema", help="print or validate the analysis_dataset_v1 schema")
+    schema_cmd = subparsers.add_parser("schema", help="print or validate the canonical analysis schema")
     schema_cmd.add_argument("--input", default=None)
     schema_cmd.set_defaults(func=cmd_schema)
+
+    provenance = subparsers.add_parser(
+        "provenance", help="print or write canonical variable provenance"
+    )
+    provenance.add_argument("--format", choices=["markdown", "csv", "json"], default="markdown")
+    provenance.add_argument("--output", default=None)
+    provenance.set_defaults(func=cmd_provenance)
+
+    smoke_live = subparsers.add_parser(
+        "smoke-live", help="run an isolated live one-file end-to-end validation"
+    )
+    smoke_live.add_argument("--workspace", default="data/temp_data/smoke_live")
+    smoke_live.add_argument("--pubmed-files", type=int, default=1)
+    smoke_live.add_argument("--jobs", type=int, default=1)
+    smoke_live.add_argument("--shards", type=int, default=2)
+    smoke_live.add_argument("--resume", action="store_true")
+    smoke_live.set_defaults(func=cmd_smoke_live)
 
     summaries = subparsers.add_parser(
         "summaries", help="derive lightweight summary tables from processed.parquet"
@@ -2474,12 +2592,24 @@ def build_parser() -> argparse.ArgumentParser:
     add_common_stage_args(filter_counts)
     filter_counts.set_defaults(func=cmd_filter_counts)
 
+    quality_report = subparsers.add_parser(
+        "quality-report", help="aggregate filter/join diagnostics and final variable quality"
+    )
+    quality_report.add_argument("--input", default=None, help="article shard directory")
+    quality_report.add_argument("--dataset", default=None, help="final processed dataset")
+    quality_report.add_argument("--output-dir", default=None)
+    add_common_stage_args(quality_report)
+    quality_report.set_defaults(func=cmd_quality_report)
+
     download = subparsers.add_parser(
         "download", help="download PubMed baseline/updatefiles with MD5 verification"
     )
     download.add_argument("--source", choices=sorted(PUBMED_BASE_URLS), default="baseline")
     download.add_argument("--output-dir", default=None)
     download.add_argument("--limit", type=int, default=None, help="debug only: first N links")
+    download.add_argument(
+        "--newest", action="store_true", help="apply --limit to the newest index links"
+    )
     download.add_argument("--jobs", type=int, default=4)
     add_dry_run_arg(download)
     add_common_stage_args(download)

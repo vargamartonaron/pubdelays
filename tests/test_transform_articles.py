@@ -24,6 +24,31 @@ def read_output(path: Path) -> list[dict[str, object]]:
     return pl.read_csv(path).to_dicts()
 
 
+def test_transform_excludes_blank_title_before_deduplication(tmp_path: Path) -> None:
+    parsed = tmp_path / "parsed.jsonl"
+    parsed.write_text(
+        json.dumps(
+            {
+                "title": " ",
+                "journal": "Example Journal",
+                "pubdate": "2020-03-01",
+                "article_date": "2020-02-01",
+                "history": {"received": "2020-01-01", "accepted": "2020-01-20"},
+                "publication_types": "Journal Article",
+                "issn_linking": "1234-567X",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = transform_files(parsed, tmp_path / "articles.parquet")
+
+    assert result.counts["raw_records"] == 1
+    assert result.counts["has_required_parsed_fields"] == 0
+    assert pl.read_parquet(tmp_path / "articles.parquet").is_empty()
+
+
 def test_transform_files_counts_filters_and_enriches_schema(tmp_path: Path) -> None:
     records = [
         {
@@ -192,7 +217,8 @@ def test_transform_files_counts_filters_and_enriches_schema(tmp_path: Path) -> N
     assert row["publication_delay"] == "17"
     assert row["is_covid"] == "True"
     assert row["is_retracted"] == "True"
-    assert row["article_date"] == "2020-02-02"
+    assert row["article_date"] == "2020-02-01"
+    assert row["retraction_original_date"] == "2020-02-02"
     assert "is_psych" not in row
     assert row["quartile_year"] == "Q1"
     assert row["asjc_all"] == "3203|1000"
@@ -214,6 +240,21 @@ def test_transform_files_counts_filters_and_enriches_schema(tmp_path: Path) -> N
         "raw_records",
         "final_rows",
     }
+    assert result.quality_path is not None
+    quality = pl.read_parquet(result.quality_path)
+    assert {"missingness", "join"}.issubset(set(quality["record_type"]))
+    retraction_join = quality.filter(
+        (pl.col("source") == "retraction_watch")
+        & (pl.col("year") == "__all__")
+        & (pl.col("metric") == "matched")
+    )
+    assert retraction_join["numerator"].item() == 1
+    supplied = quality.filter(
+        (pl.col("source") == "retraction_watch")
+        & (pl.col("year") == "__all__")
+        & (pl.col("metric") == "source_supplied")
+    )
+    assert supplied["numerator"].item() == supplied["denominator"].item()
 
 
 def test_peer_review_metadata_can_join_by_pmid_when_doi_is_absent(

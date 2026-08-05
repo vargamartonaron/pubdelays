@@ -207,6 +207,13 @@ def test_transform_shard_writes_empty_canonical_shard_for_empty_selection(
     assert pl.read_parquet(output).columns == list(CANONICAL_ARTICLE_COLUMNS)
     assert pl.read_parquet(output).is_empty()
     assert pl.read_csv(filters)["count"].to_list() == [0] * len(FILTER_STAGES)
+    assert pl.read_csv(filters).columns == [
+        "stage",
+        "count",
+        "dropped",
+        "drop_reason",
+        "kept_percent",
+    ]
 
 
 def test_transform_shard_resume_regenerates_stale_schema_shard(tmp_path: Path) -> None:

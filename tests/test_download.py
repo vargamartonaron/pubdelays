@@ -94,6 +94,10 @@ def test_parse_md5_sidecar_accepts_ncbi_and_unix_formats() -> None:
         digest,
         "pubmed.xml.gz",
     )
+    assert parse_md5_sidecar(f"MD5(pubmed.xml.gz)= {digest}\n") == (
+        digest,
+        "pubmed.xml.gz",
+    )
     assert parse_md5_sidecar("bad") is None
 
 

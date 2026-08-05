@@ -164,6 +164,7 @@ def test_split_job_array_restarts_task_ids_and_sets_input_offset(tmp_path: Path)
         log_dir=tmp_path / "logs",
         array="0-1333",
         array_throttle=100,
+        dependency="afterok:123",
         setup=[
             'PUBDELAYS_ARRAY_TASK_OFFSET="${PUBDELAYS_ARRAY_TASK_OFFSET:-0}"',
             'PUBDELAYS_ARRAY_TASK_ID="$((SLURM_ARRAY_TASK_ID + PUBDELAYS_ARRAY_TASK_OFFSET))"',
@@ -175,6 +176,10 @@ def test_split_job_array_restarts_task_ids_and_sets_input_offset(tmp_path: Path)
     split_jobs = _split_job_array(job, chunks)
 
     assert [split_job.array for split_job in split_jobs] == ["0-1000", "0-332"]
+    assert [split_job.dependency for split_job in split_jobs] == [
+        "afterok:123",
+        "afterok:123",
+    ]
     assert "PUBDELAYS_ARRAY_TASK_OFFSET=1001" in split_jobs[1].setup[0]
     script = build_sbatch_script(split_jobs[1])
     assert "#SBATCH --array=0-332%100" in script

@@ -109,3 +109,20 @@ def test_collect_filter_counts_aggregates_sidecars_with_drop_metadata(tmp_path: 
     data = pl.read_csv(output, infer_schema=False)
     assert data.filter(pl.col("stage") == "final_rows")["count"].item() == "8"
     assert "dropped" in data.columns
+
+
+def test_open_access_without_apc_does_not_require_an_amount(tmp_path: Path) -> None:
+    processed = tmp_path / "processed.parquet"
+    pl.DataFrame(
+        [
+            canonical_row(open_access="True", apc="No", apc_amount=""),
+            canonical_row(title="B", open_access="True", apc="Yes", apc_amount="1200"),
+        ]
+    ).write_parquet(processed)
+
+    result = validate_analysis_output(processed, tmp_path / "validation")
+    checks = pl.read_csv(result.tables["validation_checks"], infer_schema=False)
+    apc_check = checks.filter(pl.col("check") == "missing:open_access_apc")
+
+    assert apc_check["status"].item() == "pass"
+    assert apc_check["failed"].item() == "0"

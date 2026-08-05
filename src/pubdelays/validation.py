@@ -222,7 +222,10 @@ def _validation_checks(
 
     conditional = df.filter(pl.col("open_access") == "True")
     if conditional.height:
-        failed = conditional.filter((pl.col("apc") == "") | (pl.col("apc_amount") == "")).height
+        failed = conditional.filter(
+            (pl.col("apc") == "")
+            | ((pl.col("apc") == "Yes") & (pl.col("apc_amount") == ""))
+        ).height
         checks.append(_check_record("missing:open_access_apc", failed == 0, conditional.height, failed))
 
     retracted = df.filter(pl.col("is_retracted") == "True")

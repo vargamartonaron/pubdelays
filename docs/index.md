@@ -9,7 +9,7 @@ icon: octicons/database-16
 `pubdelays` is a Python package and CLI for turning PubMed/MEDLINE XML plus journal metadata into an article-level publication-delay dataset. The active code path is under `src/pubdelays/`, uses `lxml` for streaming XML parsing and Polars for tabular preprocessing, transformation, and aggregation.
 
 !!! note "Summary"
-    The CLI entry point is `pubdelays` in `pyproject.toml`. Default paths and stage settings are in `config/default.toml`. The public output schema is `analysis_dataset_v1` in `src/pubdelays/schema.py`.
+    The CLI entry point is `pubdelays` in `pyproject.toml`. Default paths and stage settings are in `config/default.toml`. The public output schema is `analysis_dataset_v2` in `src/pubdelays/schema.py`.
 
 <div class="grid cards" markdown>
 

@@ -31,6 +31,7 @@ nav = [
   {"Guides" = [
     {"Overview" = "guides/index.md"},
     {"Common workflows" = "guides/common-workflows.md"},
+    {"Data acquisition" = "guides/data-acquisition.md"},
     {"Local development" = "guides/local-development.md"},
     {"Production or HPC" = "guides/production-or-hpc.md"},
     {"Troubleshooting" = "guides/troubleshooting.md"}
@@ -42,6 +43,9 @@ nav = [
     {"File layout" = "reference/file-layout.md"},
     {"Schemas" = "reference/schemas.md"},
     {"Environment variables" = "reference/environment-variables.md"}
+  ]},
+  {"Paper" = [
+    {"Procedure" = "paper/procedure.md"}
   ]},
   {"Internals" = [
     {"Overview" = "internals/index.md"},

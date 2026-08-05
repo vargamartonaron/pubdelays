@@ -17,3 +17,5 @@ cd "$ROOT"
 "$RUN" --config "$CONFIG" validate
 "$RUN" --config "$CONFIG" transform-shards --shards "$SHARDS" --jobs "$JOBS" --format parquet --resume
 "$RUN" --config "$CONFIG" aggregate-all --resume
+"$RUN" --config "$CONFIG" filter-counts --resume
+"$RUN" --config "$CONFIG" quality-report

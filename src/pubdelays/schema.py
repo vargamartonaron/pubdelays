@@ -6,7 +6,7 @@ from pathlib import Path
 
 import polars as pl
 
-ANALYSIS_DATASET_VERSION = "analysis_dataset_v1"
+ANALYSIS_DATASET_VERSION = "analysis_dataset_v2"
 
 REQUIRED_PARSED_FIELDS: tuple[str, ...] = (
     "history",
@@ -14,6 +14,7 @@ REQUIRED_PARSED_FIELDS: tuple[str, ...] = (
     "pubdate",
     "publication_types",
     "issn_linking",
+    "title",
 )
 
 FILTER_STAGES: tuple[str, ...] = (
@@ -87,6 +88,7 @@ CANONICAL_ARTICLE_COLUMNS: tuple[str, ...] = (
     "retraction_nature",
     "reason",
     "retraction_date",
+    "retraction_original_date",
     "is_retracted",
     *PEER_REVIEW_COLUMNS,
 )
@@ -164,5 +166,5 @@ def validate_analysis_dataset_schema(path: Path) -> tuple[bool, list[str]]:
     if extra:
         errors.append("unexpected columns: " + ", ".join(extra))
     if not missing and not extra and columns != expected:
-        errors.append("column order differs from analysis_dataset_v1")
+        errors.append(f"column order differs from {ANALYSIS_DATASET_VERSION}")
     return not errors, errors

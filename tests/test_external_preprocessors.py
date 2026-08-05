@@ -95,7 +95,7 @@ def test_publisher_preprocessor_keeps_first_values_and_flags_conflicts(tmp_path:
     assert data[1]["publisher"] == ""
 
 
-def test_retraction_watch_preprocessor_filters_dates(tmp_path: Path) -> None:
+def test_retraction_watch_preprocessor_preserves_rows_for_quality_audit(tmp_path: Path) -> None:
     raw = tmp_path / "rw.csv"
     raw.write_text(
         "RetractionDate,OriginalPaperDate,Title,OriginalPaperDOI,RetractionDOI,RetractionNature,Reason\n"
@@ -104,7 +104,7 @@ def test_retraction_watch_preprocessor_filters_dates(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     out = tmp_path / "rw_out.csv"
-    assert preprocess_retraction_watch(raw, out) == 1
+    assert preprocess_retraction_watch(raw, out) == 2
     data = rows(out)
     assert data[0]["doi"] == "10.1/x"
     assert data[0]["retraction_doi"] == "10.1/r"

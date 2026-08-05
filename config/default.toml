@@ -48,6 +48,9 @@ processed_csv = "data/processed_data/processed.csv"
 summary_dir = "data/processed_data/summaries"
 filter_counts = "data/processed_data/filter_counts.csv"
 
+[quality]
+report_dir = "data/processed_data/quality"
+
 [analysis]
 cwd = "."
 input = "data/processed_data/processed.parquet"

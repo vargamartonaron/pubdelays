@@ -1,19 +1,15 @@
 # Legacy migration notes
 
-The historical pipeline mixed shell scripts, patched `pubmed_parser`, Python JSON conversion, and R/dplyr scripts. The active implementation ports the behavior into `src/pubdelays/` and removes the old execution path.
+The historical pipeline mixed shell scripts, patched `pubmed_parser`, Python JSON conversion, and R/dplyr scripts. The active implementation ports the behavior into `src/pubdelays/`; obsolete executable legacy sources and generated legacy outputs were removed after the migration was verified.
 
 ## Ported stages
 
-| Legacy file | Active implementation |
+| Historical stage | Active implementation |
 | --- | --- |
-| `xmls2json.py` + patched `medline_parser.py` | `src/pubdelays/parser/medline.py` and `pubdelays parse` |
-| `scimago.R` | `src/pubdelays/external/scimago.py` |
-| `wos.R` | `src/pubdelays/external/wos.py` |
-| `doaj.R` | `src/pubdelays/external/doaj.py` |
-| `npi.R` | `src/pubdelays/external/npi.py` |
-| `retraction_watch.R` | `src/pubdelays/external/retraction_watch.py` |
-| `process_data.R` | `src/pubdelays/transform/articles.py` |
-| `aggregate.R` | `src/pubdelays/aggregate.py` |
+| XML-to-JSON parser | `src/pubdelays/parser/medline.py` and `pubdelays parse` |
+| External journal preprocessors | `src/pubdelays/external/` |
+| Article processing | `src/pubdelays/transform/articles.py` |
+| Aggregation | `src/pubdelays/aggregate.py` |
 
 ## Intended semantic preservation
 
@@ -32,8 +28,8 @@ The active transform preserves the old high-level sequence:
 
 ## Intentional corrections
 
-Two legacy defects are deliberately corrected:
+Three legacy defects are deliberately corrected:
 
 1. If `article_date` is missing, `pubdate` is now allowed to supply the publication date for `publication_delay`. Legacy R filtered on `article_date` before its own `pubdate` fallback could contribute.
 2. Ceased journals are filtered against the article publication year. Legacy `ceased = is.numeric(ceased)` destroyed the ceased-year information before filtering.
-
+3. Retraction Watch's original-paper date is retained as enrichment metadata and no longer overwrites the PubMed publication date after delay calculation.

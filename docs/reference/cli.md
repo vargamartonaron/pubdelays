@@ -22,7 +22,7 @@ init-dirs -> preflight -> download -> external-all -> parse -> validate -> trans
 
 | Family | Commands | Main purpose |
 | --- | --- | --- |
-| Setup and inspection | `init-dirs`, `preflight`, `schema`, `list-inputs` | Prepare directories, check raw inputs, inspect schema, write input lists. |
+| Setup and inspection | `init-dirs`, `preflight`, `schema`, `provenance`, `smoke-live`, `list-inputs` | Prepare directories, check raw inputs, inspect schema/provenance, or run an isolated live check. |
 | PubMed input | `download`, `parse-one`, `parse`, `validate`, `journals` | Fetch/parse PubMed XML and validate parser outputs. |
 | External metadata | `download-external`, `external-all`, `external-scimago`, `external-wos`, `external-doaj`, `external-publisher`, `external-npi`, `external-retraction-watch` | Fetch public/configured metadata and normalize raw CSVs. |
 | Transform and aggregate | `transform-one`, `transform`, `transform-shard`, `transform-shards`, `validate-shards`, `aggregate`, `aggregate-all`, `summaries` | Create article shards and final outputs. |
@@ -48,13 +48,21 @@ pubdelays init-dirs
 pubdelays preflight
 pubdelays schema
 pubdelays schema --input data/processed_data/processed.parquet
+pubdelays provenance --format csv --output data/processed_data/variable_provenance.csv
+pubdelays smoke-live --pubmed-files 1 --jobs 1 --shards 2
 ```
+
+`provenance` validates exact variable coverage and emits source fields, join keys,
+derivations, units, and missingness meanings. `smoke-live` runs current public
+downloads and the feasible end-to-end pipeline in an isolated workspace; absent
+manual sources are reported and never fabricated.
 
 ## Download and parse
 
 ```bash
 pubdelays download --source baseline --jobs 4 --resume
 pubdelays download --source updatefiles --jobs 4 --resume
+pubdelays download --source baseline --limit 2 --newest --jobs 1
 pubdelays parse --jobs 16 --format jsonl --parse-mesh-subterms --resume
 pubdelays validate
 ```
@@ -90,6 +98,7 @@ pubdelays summaries --resume
 pubdelays run-analysis --resume
 pubdelays validate-analysis --resume
 pubdelays filter-counts --resume
+pubdelays quality-report
 ```
 
 `run-analysis` runs the configured study-specific command from `[analysis]`, captures stdout/stderr, and records the subprocess status in the manifest. The core CLI does not encode analysis semantics such as GAMs or plot definitions.
@@ -97,6 +106,10 @@ pubdelays filter-counts --resume
 `validate-analysis` writes final-output validation tables for delay outliers, missingness/range checks, missingness mechanisms, journal counts, article counts by time, COVID counts, and Web of Science/NPI discipline agreement. It can also write kept rows to `processed_validated.parquet` and excluded rows to `processed_validation_excluded.parquet` instead of overwriting `processed.csv` in place.
 
 `filter-counts` aggregates transform `.filters.csv` sidecars into one row-count/drop-count audit table.
+
+`quality-report` aggregates `.quality.parquet` shard sidecars and describes the
+final dataset. It writes source/year join coverage, pre/post-filter missingness,
+all-variable completeness and distributions, and pairwise marginal missingness.
 
 `transform` and `transform-shards` accept `--limit N` for small debug runs. `transform-shards` also accepts external path overrides and optional peer-review metadata:
 

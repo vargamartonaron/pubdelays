@@ -82,10 +82,6 @@ def preprocess_retraction_watch(input_csv: Path, output: Path) -> int:
             doi_expr(pl.col("retractiondoi")).alias("retraction_doi"),
             pl.col("retractionnature").alias("retraction_nature"),
         )
-        .filter(
-            (pl.col("retraction_date") >= pl.date(2015, 1, 1))
-            & (pl.col("original_date") >= pl.date(2013, 1, 1))
-        )
         .select(RETRACTION_FIELDS)
     )
     return write_frame(output, df)

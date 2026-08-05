@@ -20,6 +20,13 @@ dev = [
 ]
 docs = [
 ]
+model = [
+  "catboost>=1.2",
+  "matplotlib>=3.8",
+  "numpy>=1.26",
+  "pandas>=2.0",
+  "scikit-learn>=1.4"
+]
 
 [project.scripts]
 pubdelays = "pubdelays.cli:main"
@@ -30,7 +37,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 
 [tool.ruff]
 line-length = 110

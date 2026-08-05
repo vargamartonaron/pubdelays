@@ -108,3 +108,10 @@ Review total row count, unique DOI/PMID counts if available, column order, filte
 ## Methods note
 
 The final analysis dataset keeps records that pass the configured article-date and delay bounds. `validate-analysis` writes the kept dataset and the excluded rows separately, plus `excluded_by_reason.csv`, excluded-row breakdowns by quartile, discipline, NPI level, and open-access status, and missingness tables grouped by year, quartile, discipline, NPI level, open-access status, and pairwise field co-missingness. Use these outputs when describing data handling and missing-data mechanisms in the methods section.
+
+For the full data-quality debrief, run `pubdelays quality-report`. Transform
+sidecars measure missingness before filtering rather than only describing
+survivors. The report provides source-specific join success by year, completeness
+for every variable, typed variable distributions, and pairwise marginal
+missingness. Each marginal uses its own available denominator; it does not first
+restrict the dataset to complete cases on unrelated variables.

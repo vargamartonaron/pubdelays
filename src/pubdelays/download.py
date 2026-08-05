@@ -117,7 +117,10 @@ def parse_md5_sidecar(content: str) -> tuple[str, str] | None:
     content = content.strip()
     if not content:
         return None
-    ncbi_match = re.match(r"MD5 \((?P<filename>[^)]+)\) = (?P<md5>[0-9a-fA-F]{32})", content)
+    ncbi_match = re.match(
+        r"MD5\s*\((?P<filename>[^)]+)\)\s*=\s*(?P<md5>[0-9a-fA-F]{32})",
+        content,
+    )
     if ncbi_match:
         return ncbi_match.group("md5").lower(), ncbi_match.group("filename")
     unix_match = re.match(r"(?P<md5>[0-9a-fA-F]{32})\s+\*?(?P<filename>.+)", content)

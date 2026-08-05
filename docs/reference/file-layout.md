@@ -39,7 +39,7 @@ data/manifests/slurm/transform-shards/*.sqlite       Per-task transform manifest
 ## Final outputs
 
 ```text
-data/processed_data/processed.parquet                Canonical analysis_dataset_v1 dataset
+data/processed_data/processed.parquet                Canonical analysis_dataset_v2 dataset
 data/processed_data/processed.csv                    CSV export
 data/processed_data/summaries/                       Lightweight summary tables
 data/processed_data/analysis/                        Generic configured analysis output directory
@@ -47,6 +47,7 @@ data/processed_data/analysis_tables/                 Analysis script tables
 data/processed_data/analysis_figures/                Analysis script CSV datasets and SVG previews
 data/processed_data/validation_tables/               Final-output validation tables
 data/processed_data/filter_counts.csv                Aggregate transform filter counts
+data/processed_data/quality/                         Missingness, join-coverage, distribution, and marginal debriefs
 data/processed_data/processed_validated.parquet      Optional validation-filtered dataset
 data/processed_data/*.csv                            Processed external lookup tables
 ```
