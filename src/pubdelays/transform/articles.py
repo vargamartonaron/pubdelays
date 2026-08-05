@@ -19,6 +19,7 @@ from typing import Any
 
 import polars as pl
 
+from pubdelays.apc import attach_apc_eur
 from pubdelays.external.common import (
     doi_expr,
     issn_expr,
@@ -52,6 +53,7 @@ class ExternalInputs:
     retraction_watch: Path | None = None
     publisher: Path | None = None
     peer_review: Path | None = None
+    exchange_rates: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -148,6 +150,21 @@ class QualityRecorder:
                 "source": source,
                 "year": year,
                 "variable": "",
+                "metric": metric,
+                "numerator": numerator,
+                "denominator": denominator,
+                "value": "",
+            }
+        )
+
+    def anomaly(self, variable: str, metric: str, numerator: int, denominator: int) -> None:
+        self.rows.append(
+            {
+                "record_type": "anomaly",
+                "checkpoint": "peer_review_dates:before_nulling",
+                "source": "peer_review",
+                "year": "__all__",
+                "variable": variable,
                 "metric": metric,
                 "numerator": numerator,
                 "denominator": denominator,
@@ -462,7 +479,7 @@ def _left_join_external(
             matched_column=None,
             source_supplied=path is not None and Path(path).exists(),
         )
-        return df
+        return df.with_columns(pl.lit(False).alias(f"match_{source}"))
     marker = f"__matched_{source}"
     source_rows = right.height
     source_keys = right["issn_linking"].n_unique()
@@ -489,7 +506,7 @@ def _left_join_external(
         matched_column=marker,
         source_supplied=True,
     )
-    return joined.drop(marker)
+    return joined.with_columns(pl.col(marker).fill_null(False).alias(f"match_{source}")).drop(marker)
 
 
 def _left_join_peer_review(
@@ -505,7 +522,7 @@ def _left_join_peer_review(
             matched_column=None,
             source_supplied=path is not None and Path(path).exists(),
         )
-        return df
+        return df.with_columns(pl.lit(False).alias("match_peer_review"))
     if "review_delay" in right.columns and "review_cycle_delay" not in right.columns:
         right = right.rename({"review_delay": "review_cycle_delay"})
     for key in ("doi", "pmid", "title"):
@@ -543,7 +560,9 @@ def _left_join_peer_review(
                 matched_column=marker,
                 source_supplied=True,
             )
-            return joined.drop(marker)
+            return joined.with_columns(
+                pl.col(marker).fill_null(False).alias("match_peer_review")
+            ).drop(marker)
     _record_join_quality(
         recorder,
         df,
@@ -552,7 +571,7 @@ def _left_join_peer_review(
         matched_column=None,
         source_supplied=True,
     )
-    return df
+    return df.with_columns(pl.lit(False).alias("match_peer_review"))
 
 
 def _load_retractions(path: Path | None) -> pl.DataFrame:
@@ -707,6 +726,7 @@ def transform_files(
         [
             *REQUIRED_PARSED_FIELDS,
             "delete",
+            "pmid",
             "title",
             "keywords",
             "doi",
@@ -819,7 +839,7 @@ def transform_files(
 
     for source, path in [
         ("scimago", external.scimago),
-        ("web_of_science", external.web_of_science),
+        ("scopus", external.web_of_science),
         ("doaj", external.doaj),
         ("norwegian_list", external.norwegian_list),
         ("publisher", external.publisher),
@@ -849,7 +869,7 @@ def transform_files(
         pl.col("ceased").cast(pl.Int64, strict=False).alias("ceased_year"),
         pl.col("publication_date").dt.year().alias("article_year"),
     ).filter(
-        (pl.col("is_conference_int") == 0)
+        (pl.col("is_conference_int").is_null() | (pl.col("is_conference_int") == 0))
         & (pl.col("received_date") >= pl.lit(min_received))
         & (
             pl.col("ceased_year").is_null()
@@ -859,10 +879,18 @@ def transform_files(
     counts["eligible_journal_metadata"] = df.height
     recorder.snapshot(df, "eligible_journal_metadata:after")
 
-    recorder.snapshot(df, "distinct_titles:before")
-    df = df.unique(subset=["title"], keep="first", maintain_order=True)
-    counts["distinct_titles"] = df.height
-    recorder.snapshot(df, "distinct_titles:after")
+    recorder.snapshot(df, "distinct_articles:before")
+    identified = df.filter(pl.col("pmid").cast(pl.Utf8, strict=False).fill_null("") != "")
+    missing_pmid = df.filter(pl.col("pmid").cast(pl.Utf8, strict=False).fill_null("") == "")
+    with_doi = missing_pmid.filter(pl.col("doi") != "").unique(
+        subset=["doi"], keep="first", maintain_order=True
+    )
+    without_doi = missing_pmid.filter(pl.col("doi") == "").unique(
+        subset=["title"], keep="first", maintain_order=True
+    )
+    df = pl.concat([identified, with_doi, without_doi], how="diagonal_relaxed")
+    counts["distinct_articles"] = df.height
+    recorder.snapshot(df, "distinct_articles:after")
 
     for col in [
         "asjc",
@@ -888,11 +916,32 @@ def transform_files(
         if col not in df.columns:
             df = df.with_columns(pl.lit(None).cast(pl.Utf8).alias(col))
 
+    df = attach_apc_eur(df, external.exchange_rates)
+
     df = df.with_columns(
         date_expr(pl.col("first_review_date")).alias("_first_review_date"),
         date_expr(pl.col("last_review_date")).alias("_last_review_date"),
         date_expr(pl.col("date_first_accepted")).alias("_date_first_accepted"),
-    ).with_columns(
+    )
+    peer_date_columns = ("_first_review_date", "_last_review_date", "_date_first_accepted")
+    for column in peer_date_columns:
+        impossible = (
+            pl.col(column).is_not_null()
+            & (
+                (pl.col(column) < pl.col("received_date"))
+                | (pl.col(column) > pl.col("accepted_date"))
+            )
+        ).fill_null(False)
+        count = int(df.select(impossible.sum()).item() or 0)
+        public_column = column.removeprefix("_")
+        recorder.anomaly(public_column, "outside_submission_acceptance", count, df.height)
+        df = df.with_columns(
+            pl.when(impossible).then(None).otherwise(pl.col(column)).alias(column),
+            pl.when(impossible).then(None).otherwise(pl.col(public_column)).alias(public_column),
+        )
+    recorder.snapshot(df, "peer_review_dates:after_nulling")
+
+    df = df.with_columns(
         day_delta_expr(pl.col("_date_first_accepted"), pl.col("received_date"))
         .fill_null(pl.col("review_finding_delay").cast(pl.Int64, strict=False))
         .alias("review_finding_delay"),
@@ -921,6 +970,19 @@ def transform_files(
         .fill_null(pl.col("date_first_accepted"))
         .alias("date_first_accepted"),
     )
+    for column in (
+        "review_cycle_delay",
+        "review_finding_delay",
+        "first_decision_delay",
+        "final_decision_delay",
+        "first_review_delay",
+        "peer_review_delay",
+    ):
+        numeric = pl.col(column).cast(pl.Int64, strict=False)
+        negative = numeric.is_not_null() & (numeric < 0)
+        count = int(df.select(negative.sum()).item() or 0)
+        recorder.anomaly(column, "negative_delay", count, df.height)
+        df = df.with_columns(pl.when(negative).then(None).otherwise(numeric).alias(column))
 
     df = df.with_columns(
         year_lookup_expr(df, "quartile", "article_year").alias("quartile_year"),
@@ -928,16 +990,35 @@ def transform_files(
         year_lookup_expr(df, "h_index", "article_year").alias("h_index_year"),
         year_lookup_expr(df, "npi_level", "article_year").alias("npi_year"),
         pl.col("issn_linking").is_in(list(MEGAJOURNAL_ISSNS)).alias("is_mega_bool"),
-        (
-            (
-                pl.col("does_the_journal_comply_to_doaj_s_definition_of_open_access")
-                == "Yes"
-            )
-            | (pl.col("open_access_status") == "Unpaywall Open Acess")
-            | (pl.col("npi_open_access") == "DOAJ")
-        )
+        (pl.col("does_the_journal_comply_to_doaj_s_definition_of_open_access") == "Yes")
         .fill_null(False)
-        .alias("open_access_bool"),
+        .alias("open_access_doaj_evidence_bool"),
+        pl.col("open_access_status")
+        .cast(pl.Utf8, strict=False)
+        .str.to_lowercase()
+        .str.replace_all("[^a-z]", "")
+        .is_in(["unpaywallopenaccess", "unpaywallopenacess"])
+        .fill_null(False)
+        .alias("open_access_scopus_evidence_bool"),
+        (pl.col("npi_open_access") == "DOAJ")
+        .fill_null(False)
+        .alias("open_access_npi_evidence_bool"),
+    ).with_columns(
+        (
+            pl.col("open_access_doaj_evidence_bool")
+            | pl.col("open_access_scopus_evidence_bool")
+            | pl.col("open_access_npi_evidence_bool")
+        ).alias("open_access_bool"),
+        pl.concat_list(
+            [
+                pl.when(pl.col("open_access_doaj_evidence_bool")).then(pl.lit("doaj")),
+                pl.when(pl.col("open_access_scopus_evidence_bool")).then(pl.lit("scopus")),
+                pl.when(pl.col("open_access_npi_evidence_bool")).then(pl.lit("npi")),
+            ]
+        )
+        .list.drop_nulls()
+        .list.join("|")
+        .alias("open_access_evidence_sources"),
     )
 
     retractions = _load_retractions(external.retraction_watch)
@@ -986,6 +1067,21 @@ def transform_files(
         bool_text_expr(pl.col("is_covid_bool")).alias("is_covid"),
         bool_text_expr(pl.col("is_mega_bool")).alias("is_mega"),
         bool_text_expr(pl.col("open_access_bool")).alias("open_access"),
+        bool_text_expr(pl.col("match_scimago")).alias("match_scimago"),
+        bool_text_expr(pl.col("match_scopus")).alias("match_scopus"),
+        bool_text_expr(pl.col("match_doaj")).alias("match_doaj"),
+        bool_text_expr(pl.col("match_norwegian_list")).alias("match_npi"),
+        bool_text_expr(pl.col("match_publisher")).alias("match_publisher"),
+        bool_text_expr(pl.col("match_peer_review")).alias("match_peer_review"),
+        bool_text_expr(pl.col("open_access_doaj_evidence_bool")).alias(
+            "open_access_doaj_evidence"
+        ),
+        bool_text_expr(pl.col("open_access_scopus_evidence_bool")).alias(
+            "open_access_scopus_evidence"
+        ),
+        bool_text_expr(pl.col("open_access_npi_evidence_bool")).alias(
+            "open_access_npi_evidence"
+        ),
         bool_text_expr(pl.col("is_retracted_bool")).alias("is_retracted"),
         pl.coalesce([pl.col("country"), pl.col("country_of_publication")]).alias(
             "country"

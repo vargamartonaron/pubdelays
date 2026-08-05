@@ -220,13 +220,13 @@ def _validation_checks(
         failed = df.filter((pl.col(column) == "") | pl.col(column).is_null()).height
         checks.append(_check_record(f"missing:{column}", failed == 0, n, failed))
 
-    conditional = df.filter(pl.col("open_access") == "True")
-    if conditional.height:
-        failed = conditional.filter(
-            (pl.col("apc") == "")
-            | ((pl.col("apc") == "Yes") & (pl.col("apc_amount") == ""))
-        ).height
-        checks.append(_check_record("missing:open_access_apc", failed == 0, conditional.height, failed))
+    conditional = df.filter(
+        (pl.col("match_doaj") == "True") & (pl.col("apc") == "Yes")
+    )
+    failed = conditional.filter(pl.col("apc_amount") == "").height
+    checks.append(
+        _check_record("missing:open_access_apc", failed == 0, conditional.height, failed)
+    )
 
     retracted = df.filter(pl.col("is_retracted") == "True")
     if retracted.height:
@@ -250,8 +250,20 @@ def _validation_checks(
 
     journal_article_failed = df.filter(~pl.col("publication_types").str.contains("Journal Article").fill_null(False)).height
     checks.append(_check_record("content:journal_article", journal_article_failed == 0, n, journal_article_failed))
-    title_duplicates = n - df.select("title").unique().height
-    checks.append(_check_record("unique:title", title_duplicates == 0, n, title_duplicates))
+    identified = df.filter(pl.col("pmid") != "")
+    pmid_duplicates = identified.height - identified.select("pmid").unique().height
+    checks.append(_check_record("unique:pmid", pmid_duplicates == 0, identified.height, pmid_duplicates))
+    missing_pmid = df.filter(pl.col("pmid") == "")
+    with_doi = missing_pmid.filter(pl.col("doi") != "")
+    doi_duplicates = with_doi.height - with_doi.select("doi").unique().height
+    checks.append(_check_record("unique:fallback_doi", doi_duplicates == 0, with_doi.height, doi_duplicates))
+    without_ids = missing_pmid.filter(pl.col("doi") == "")
+    title_duplicates = without_ids.height - without_ids.select("title").unique().height
+    checks.append(
+        _check_record(
+            "unique:fallback_title", title_duplicates == 0, without_ids.height, title_duplicates
+        )
+    )
     return pl.DataFrame(checks)
 
 

@@ -1,12 +1,12 @@
 ---
 title: Schemas
-description: analysis_dataset_v2 columns, parsed requirements, filter counts, and shard naming.
+description: analysis_dataset_v3 columns, parsed requirements, filter counts, and shard naming.
 icon: octicons/table-16
 ---
 
 # Schemas
 
-`analysis_dataset_v2` is the public schema for `data/processed_data/processed.parquet` and `data/processed_data/processed.csv`. Version 2 keeps the Retraction Watch original-paper date in `retraction_original_date` instead of overwriting the PubMed publication date. The version constant, required parsed fields, filter stages, peer-review columns, and canonical output order live in `src/pubdelays/schema.py`.
+`analysis_dataset_v3` is the public schema for `data/processed_data/processed.parquet` and `data/processed_data/processed.csv`. Version 3 adds PMID-first identity, explicit join/open-access evidence, and APC EUR proxy provenance. The version constant, required parsed fields, filter stages, peer-review columns, and canonical output order live in `src/pubdelays/schema.py`.
 
 All exported columns are stored as strings for CSV/Parquet interoperability. Boolean flags use string values `True` and `False`; missing text, dates, and unavailable numeric metadata use the empty string. Delay columns are integer day counts encoded as strings.
 
@@ -45,7 +45,7 @@ coherent_dates
 nonnegative_delays
 after_external_joins
 eligible_journal_metadata
-distinct_titles
+distinct_articles
 final_rows
 ```
 
@@ -70,6 +70,7 @@ articles-shard-00063-of-00064.parquet
 
 | Column | Group | Meaning | Units / values |
 | --- | --- | --- | --- |
+| `pmid` | identifiers | Primary PubMed article identity. | PMID or empty |
 | `is_covid` | flags | Article title/keyword COVID synonym flag. | `True`/`False` |
 | `received` | dates | Manuscript received date from PubMed history. | ISO date |
 | `article_date` | dates | Publication date used for publication delay. | ISO date |
@@ -79,17 +80,19 @@ articles-shard-00063-of-00064.parquet
 | `is_mega` | flags | Linking ISSN is in the configured megajournal set. | `True`/`False` |
 | `issn_linking` | identifiers | Normalized PubMed linking ISSN. | ISSN without punctuation |
 | `h_index_year` | journal metadata | SCImago h-index for the article year. | integer string |
-| `open_access` | external enrichment | Open-access flag from DOAJ, WoS, or NPI evidence. | `True`/`False` |
+| `open_access` | external enrichment | Positive OA evidence from DOAJ, Scopus, or NPI; False is absence of positive evidence. | `True`/`False` |
+| `match_scimago`, `match_scopus`, `match_doaj`, `match_npi`, `match_publisher`, `match_peer_review` | join diagnostics | Article matched the named optional source. | `True`/`False` |
+| `open_access_doaj_evidence`, `open_access_scopus_evidence`, `open_access_npi_evidence`, `open_access_evidence_sources` | evidence | Source-specific positive OA evidence and source list. | flags / pipe-delimited labels |
 | `publication_delay` | outcomes | Publication date minus accepted date. | days |
 | `publication_types` | article metadata | PubMed publication type labels. | semicolon/text |
 | `title` | identifiers | Article title. | text |
 | `journal` | identifiers | Journal title from PubMed. | text |
 | `quartile_year` | journal metadata | SCImago quartile for the article year. | `Q1`-`Q4` or empty |
 | `rank_year` | journal metadata | SCImago rank for the article year. | integer string |
-| `discipline` | field classification | First WoS-derived umbrella discipline. | text |
-| `asjc` | field classification | First WoS ASJC code. | code string |
-| `discipline_all` | field classification | All WoS-derived umbrella disciplines. | pipe-delimited text |
-| `asjc_all` | field classification | All WoS ASJC codes for the journal. | pipe-delimited code strings |
+| `discipline` | field classification | First Scopus-derived umbrella discipline. | text |
+| `asjc` | field classification | First Scopus ASJC code. | code string |
+| `discipline_all` | field classification | All Scopus-derived umbrella disciplines. | pipe-delimited text |
+| `asjc_all` | field classification | All Scopus ASJC codes for the journal. | pipe-delimited code strings |
 | `scimago_categories` | field classification | SCImago categories from current-year metadata. | pipe-delimited text |
 | `publisher` | external enrichment | First non-empty publisher name for the ISSN. | text |
 | `publisher_group` | external enrichment | First non-empty publisher group/parent. | text |
@@ -104,6 +107,8 @@ articles-shard-00063-of-00064.parquet
 | `keywords` | article metadata | PubMed keyword text. | text |
 | `apc` | external enrichment | DOAJ APC availability flag/value. | source value |
 | `apc_amount` | external enrichment | DOAJ APC amount. | amount string |
+| `apc_eur_proxy`, `apc_eur_proxy_min`, `apc_eur_proxy_max` | derived proxy | Converted median/minimum/maximum of all DOAJ currency quotes. | EUR or empty |
+| `apc_quote_count`, `apc_fx_sources`, `apc_fx_rate_start`, `apc_fx_rate_end`, `apc_conversion_status` | conversion audit | Quote and official-rate provenance. | count / labels / dates / status |
 | `doi` | identifiers | Normalized article DOI. | lowercase DOI |
 | `retraction_nature` | retractions | Retraction Watch nature. | text |
 | `reason` | retractions | Retraction Watch reason. | text |
@@ -114,7 +119,7 @@ articles-shard-00063-of-00064.parquet
 | `n_reviews` | optional peer review | Review count from the optional peer-review table. | integer string or empty |
 | `first_review_date` | optional peer review | First review date from the optional peer-review table. | ISO date or empty |
 | `last_review_date` | optional peer review | Last review date from the optional peer-review table. | ISO date or empty |
-| `n_reviewers` | optional peer review | Reviewer count from the optional peer-review table. | integer string or empty |
+| `n_reviewers` | optional peer review | Reserved compatibility field; current export lacks reviewer identity and this field is excluded from analysis. | empty |
 | `date_first_accepted` | optional peer review | First accepted date from the optional peer-review table. | ISO date or empty |
 | `review_cycle_delay` | optional peer review | Review-cycle delay from the optional peer-review table. | days or empty |
 | `review_finding_delay` | optional peer review | Review-finding delay from the optional peer-review table. | days or empty |

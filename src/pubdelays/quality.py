@@ -27,7 +27,10 @@ NUMERIC_VARIABLES = {
     "rank_year",
     "npi_year",
     "established",
-    "apc_amount",
+    "apc_eur_proxy",
+    "apc_eur_proxy_min",
+    "apc_eur_proxy_max",
+    "apc_quote_count",
     "n_review_round",
     "n_reviews",
     "n_reviewers",
@@ -259,7 +262,24 @@ def build_quality_report(input_dir: Path, dataset: Path, output_dir: Path) -> Qu
         tables["stage_and_join_quality"] = _write_table(output_dir, "stage_and_join_quality", sidecars)
         debrief = (
             sidecars.group_by("record_type", "checkpoint", "source", "year", "variable", "metric", maintain_order=True)
-            .agg(pl.col("numerator").cast(pl.Int64, strict=False).sum(), pl.col("denominator").cast(pl.Int64, strict=False).sum())
+            .agg(
+                pl.when(
+                    pl.col("metric").first().is_in(
+                        ["source_rows", "source_unique_keys", "source_duplicate_key_rows"]
+                    )
+                )
+                .then(pl.col("numerator").cast(pl.Int64, strict=False).max())
+                .otherwise(pl.col("numerator").cast(pl.Int64, strict=False).sum())
+                .alias("numerator"),
+                pl.when(
+                    pl.col("metric").first().is_in(
+                        ["source_rows", "source_unique_keys", "source_duplicate_key_rows"]
+                    )
+                )
+                .then(pl.col("denominator").cast(pl.Int64, strict=False).max())
+                .otherwise(pl.col("denominator").cast(pl.Int64, strict=False).sum())
+                .alias("denominator"),
+            )
             .with_columns(
                 pl.when(pl.col("denominator") > 0)
                 .then((pl.col("numerator") / pl.col("denominator") * 100).round(4))

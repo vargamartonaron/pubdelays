@@ -14,8 +14,8 @@ stage name, input and output paths, record counts, status, timestamps, checksums
 stage metadata. Raw downloads, generated datasets, manifests, and caches were not
 treated as repository source files.
 
-Public PubMed baseline files were downloaded with their MD5 sidecars and accepted
-only after checksum verification. DOAJ and Retraction Watch were downloaded from
+Public PubMed baseline and update files were downloaded into separate directories
+with their MD5 sidecars and accepted only after checksum verification. DOAJ and Retraction Watch were downloaded from
 their current public CSV endpoints. Other journal sources were supplied as dated,
 licensed or manually exported snapshots. The acquisition procedure and current
 official endpoints are documented in [Data acquisition and snapshotting](../guides/data-acquisition.md).
@@ -23,6 +23,13 @@ official endpoints are documented in [Data acquisition and snapshotting](../guid
 ## Parsing and initial curation
 
 The XML parser operated in bounded memory and represented deletion notices explicitly.
+We reconstructed the live PubMed state before article curation. Baseline and update
+files were parsed separately; update files were applied in filename and record order,
+with the last record for each PMID taking precedence. A final `DeleteCitation`
+removed that PMID, while a final live update replaced its baseline representation.
+PMID was the primary article identifier. Only records without PMID used normalized DOI
+and then exact title as deterministic fallback identifiers. Title equality alone never
+collapsed two PMID-bearing articles.
 Before every row-removing operation, the pipeline recorded the number and proportion
 missing for every variable, both overall and marginally by publication year; it then
 recorded the same measures after the operation. The ordered filtering checkpoints
@@ -30,7 +37,7 @@ were: all parsed records; non-deleted records; records containing the required p
 fields, including a nonempty title; records with usable receipt and acceptance dates; records whose publication
 types contained `Journal Article`; records with a linking ISSN; chronologically
 coherent dates; nonnegative derived delays; rows after external left joins; journals
-eligible under journal metadata; distinct titles; and final rows.
+eligible under journal metadata; distinct articles by the identifier hierarchy; and final rows.
 
 The receipt date came from PubMed history entries with status `received`, and the
 acceptance date from entries with status `accepted`. Publication date was the PubMed
@@ -41,8 +48,9 @@ Acceptance delay was acceptance minus receipt and publication delay was publicat
 minus acceptance, both in days. These checks exclude equal or reversed dates. Receipt
 dates before 1 January 2013 were excluded. The analysis validation window was 1
 January 2016 through 31 December 2025, and delay analyses retained values from 1 to
-1,095 days. Exact-title duplicates were reduced deterministically to the first row in
-stable input order; records without a title were excluded before this operation.
+1,095 days. Among the exceptional records without PMID, DOI duplicates were reduced
+deterministically; only records lacking both PMID and DOI used exact title. Records
+without a title were excluded before this operation.
 
 ## External joins and variable handling
 
@@ -66,13 +74,30 @@ use an explicit `__MISSING__` level and numeric inputs remain missing for CatBoo
 native handling.
 
 Year-specific SCImago and NPI values were selected using publication year through
-2025. Open access was `True` when any implemented DOAJ, Scopus Source List, or NPI
-condition was positive. Megajournal status used the fixed list
+2025. NPI nonmatches were retained and its fields left missing. Open access was
+`True` when any implemented DOAJ, Scopus Source List, or NPI condition was positive;
+separate match and positive-evidence flags identify exactly which sources support the
+classification. Consequently, `False` means that no matched source supplied positive
+evidence, not that closed access was independently established. Megajournal status used the fixed list
 of 21 linking ISSNs encoded in the schema. COVID-19 status was based on a
 case-insensitive controlled synonym search across title and keywords. A record was
 classified as retracted when a DOI-matched Retraction Watch record contained a
 retraction nature or reason. `OriginalPaperDate` is retained only as
 `retraction_original_date`; it never overwrites the PubMed publication date.
+
+DOAJ APC text was retained unchanged because a journal can report multiple quotes and
+currencies. Every parseable amount/currency pair was converted to EUR using the
+latest official rate on or before the article publication date: daily European
+Central Bank rates first and European Commission InforEuro monthly rates as fallback.
+The article record reports the median, minimum, maximum, quote count, rate sources,
+rate-date range, and conversion coverage. These values are historical-currency
+conversions of a 2026 DOAJ journal snapshot and are therefore labelled APC proxies,
+not observed article-level charges.
+
+Peer-review dates outside the PubMed receipt-to-acceptance interval and negative
+peer-review intervals were counted in quality sidecars before being set to missing.
+The available peer-review export had no reviewer identifier; `n_reviewers` therefore
+remains an empty compatibility field and was excluded from models and interpretation.
 
 ## Variable provenance
 
@@ -82,14 +107,15 @@ derivation, units, and missingness interpretation. The source overview is:
 
 | Variables | Level | Source |
 | --- | --- | --- |
-| `received`, `article_date`, `article_date_raw`, `publication_date_source`, `acceptance_delay`, `publication_delay`, `publication_types`, `title`, `journal`, `issn_linking`, `keywords`, `doi`, `is_covid` | article/journal | PubMed/MEDLINE; delays and COVID flag derived |
+| `pmid`, `received`, `article_date`, `article_date_raw`, `publication_date_source`, `acceptance_delay`, `publication_delay`, `publication_types`, `title`, `journal`, `issn_linking`, `keywords`, `doi`, `is_covid` | article/journal | PubMed/MEDLINE; delays and COVID flag derived |
 | `is_mega` | journal | fixed study classification by linking ISSN |
 | `h_index_year`, `quartile_year`, `rank_year`, `scimago_categories` | journal-year | SCImago Journal Rank |
 | `discipline`, `asjc`, `discipline_all`, `asjc_all` | journal | Scopus Source List |
-| `open_access` | journal | derived from DOAJ, Scopus Source List, and NPI |
+| `open_access`, `open_access_*_evidence`, `open_access_evidence_sources`, `match_*` | article/journal | join coverage and derived evidence from DOAJ, Scopus Source List, NPI, SCImago, publisher, and peer-review sources |
 | `publisher`, `publisher_group`, `publisher_conflict`, `publisher_group_conflict` | journal | study-curated publisher metadata |
 | `npi_discipline`, `npi_field`, `npi_year`, `is_series`, `established`, `country` | journal/journal-year | NPI, with country fallback from available journal metadata |
-| `apc`, `apc_amount` | journal | DOAJ |
+| `apc`, `apc_amount` | journal | DOAJ raw snapshot |
+| `apc_eur_proxy`, `apc_eur_proxy_min`, `apc_eur_proxy_max`, `apc_quote_count`, `apc_fx_*`, `apc_conversion_status` | article/journal | DOAJ quotes converted with official ECB/InforEuro rates |
 | `retraction_nature`, `reason`, `retraction_date`, `retraction_original_date`, `is_retracted` | article | Retraction Watch joined by DOI |
 | `n_review_round`, `n_reviews`, `first_review_date`, `last_review_date`, `n_reviewers`, `date_first_accepted`, `review_cycle_delay`, `review_finding_delay`, `first_decision_delay`, `final_decision_delay`, `first_review_delay`, `peer_review_delay` | article | optional private peer-review metadata, with date-derived intervals |
 
@@ -122,8 +148,8 @@ importance nor SHAP values are interpreted causally. Primary models include
 retracted articles and `is_retracted`; a complete sensitivity run excludes retracted
 records. The feature set includes journal, discipline, open-access and megajournal
 flags, COVID-19 status, APC indicator, country, publication-date source, annual
-SCImago and NPI measures, journal series and establishment fields, peer-review counts
-when supplied, and calendar features derived from publication date.
+SCImago and NPI measures, journal series and establishment fields, supported
+peer-review round counts, and calendar features derived from publication date.
 
 Models train on 2016–2023, use 2024 for early stopping and iteration selection, refit
 on 2016–2024, and evaluate once on 2025. Evaluation reports MAE, median absolute

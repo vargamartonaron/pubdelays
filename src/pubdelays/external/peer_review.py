@@ -59,7 +59,10 @@ def preprocess_peer_review(input_csv: Path, output: Path) -> int:
             pl.len().alias("n_reviews"),
             pl.col("date_reviewed").min().alias("first_review_date"),
             pl.col("date_reviewed").max().alias("last_review_date"),
-            pl.len().alias("n_reviewers"),
+            # The supplied export has no reviewer identifier. Event count is
+            # not a defensible reviewer-count proxy, so retain this variable as
+            # explicitly unavailable until a suitable source field exists.
+            pl.lit(None).cast(pl.Int64).alias("n_reviewers"),
             pl.col("date_accepted").min().alias("date_first_accepted"),
         )
         .with_columns(

@@ -23,7 +23,7 @@ def _scan_article(path: Path) -> pl.LazyFrame:
 
 
 def collect_articles(input_path: Path) -> pl.DataFrame:
-    """Collect article shards and apply the final title-level deduplication."""
+    """Collect article shards and enforce PMID-first article identity."""
 
     paths = iter_article_paths(Path(input_path))
     if not paths:
@@ -34,19 +34,35 @@ def collect_articles(input_path: Path) -> pl.DataFrame:
     for col in CANONICAL_ARTICLE_COLUMNS:
         if col not in df.columns:
             df = df.with_columns(pl.lit("").alias(col))
-    return df.select(
+    df = df.select(
         [
             pl.col(col).cast(pl.Utf8, strict=False).fill_null("").alias(col)
             for col in CANONICAL_ARTICLE_COLUMNS
         ]
-    ).unique(subset=["title"], keep="first", maintain_order=True)
+    )
+    identified = df.filter(pl.col("pmid") != "")
+    duplicate_pmids = identified.height - identified["pmid"].n_unique()
+    if duplicate_pmids:
+        raise ValueError(
+            "aggregate: resolved shards contain "
+            f"{duplicate_pmids} duplicate PMID rows; run PubMed state resolution first"
+        )
+    missing_pmid = df.filter(pl.col("pmid") == "")
+    with_doi = missing_pmid.filter(pl.col("doi") != "").unique(
+        subset=["doi"], keep="first", maintain_order=True
+    )
+    without_doi = missing_pmid.filter(pl.col("doi") == "").unique(
+        subset=["title"], keep="first", maintain_order=True
+    )
+    return pl.concat([identified, with_doi, without_doi], how="diagonal_relaxed")
 
 
 def aggregate_articles(input_path: Path, output_path: Path) -> int:
     """Aggregate article shards and write one output.
 
-    The aggregate keeps the first row per title, then writes Parquet/CSV/TSV
-    based on the output suffix.
+    PMID-bearing rows must already be unique after state resolution. Rows without
+    PMID fall back to DOI and finally exact title before writing the requested
+    output format.
     """
 
     df = collect_articles(Path(input_path))
@@ -62,7 +78,9 @@ def aggregate_outputs(input_path: Path, output_paths: list[Path]) -> int:
     return df.height
 
 
-def collect_filter_counts(input_path: Path, output_path: Path) -> int:
+def collect_filter_counts(
+    input_path: Path, output_path: Path, *, final_dataset: Path | None = None
+) -> int:
     """Aggregate per-shard filter sidecars into one audit table."""
     paths = sorted(Path(input_path).glob("*.filters.csv"))
     if not paths:
@@ -78,6 +96,20 @@ def collect_filter_counts(input_path: Path, output_path: Path) -> int:
         df.with_columns(pl.col("count").cast(pl.Int64, strict=False).fill_null(0))
         .group_by("stage", maintain_order=True)
         .agg(pl.col("count").sum().alias("count"))
+    )
+    if final_dataset is not None and Path(final_dataset).exists():
+        final_count = _scan_article(Path(final_dataset)).select(pl.len()).collect().item()
+        totals = pl.concat(
+            [
+                totals,
+                pl.DataFrame(
+                    {"stage": ["aggregate_distinct_articles"], "count": [final_count]}
+                ),
+            ],
+            how="diagonal_relaxed",
+        )
+    totals = (
+        totals
         .with_columns(
             (pl.col("count").shift(1) - pl.col("count")).fill_null(0).clip(0).alias("dropped"),
             pl.when(pl.col("count").shift(1) > 0)

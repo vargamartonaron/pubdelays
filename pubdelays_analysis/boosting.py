@@ -34,7 +34,6 @@ NUMERIC_FEATURES: tuple[str, ...] = (
     "rank_year",
     "established",
     "n_review_round",
-    "n_reviewers",
     "npi_year",
     "time_numeric",
     "weekday",

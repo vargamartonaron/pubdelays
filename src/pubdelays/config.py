@@ -176,4 +176,10 @@ def load_config(path: Path | str = "config/default.toml") -> PipelineConfig:
     with config_path.open("rb") as handle:
         values = tomllib.load(handle)
     validate_config_values(config_path, values)
-    return PipelineConfig(root=discover_repo_root(config_path.parent), values=values)
+    working_root = discover_repo_root()
+    root = (
+        working_root
+        if config_path.resolve().is_relative_to(working_root)
+        else config_path.resolve().parent
+    )
+    return PipelineConfig(root=root, values=values)

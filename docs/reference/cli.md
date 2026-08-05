@@ -63,8 +63,11 @@ manual sources are reported and never fabricated.
 pubdelays download --source baseline --jobs 4 --resume
 pubdelays download --source updatefiles --jobs 4 --resume
 pubdelays download --source baseline --limit 2 --newest --jobs 1
-pubdelays parse --jobs 16 --format jsonl --parse-mesh-subterms --resume
-pubdelays validate
+pubdelays download --source updatefiles --jobs 4 --resume
+pubdelays parse --source baseline --jobs 16 --format jsonl --parse-mesh-subterms --resume
+pubdelays parse --source updatefiles --jobs 16 --format jsonl --parse-mesh-subterms --resume
+pubdelays resolve-state --resume
+pubdelays validate data/temp_data/pubmed/resolved_jsonl
 ```
 
 Parsing supports `--format jsonl` and `--format json`. JSONL is the full-scale default; JSON materializes one array and is for small fixtures or interoperability.
@@ -103,7 +106,7 @@ pubdelays quality-report
 
 `run-analysis` runs the configured study-specific command from `[analysis]`, captures stdout/stderr, and records the subprocess status in the manifest. The core CLI does not encode analysis semantics such as GAMs or plot definitions.
 
-`validate-analysis` writes final-output validation tables for delay outliers, missingness/range checks, missingness mechanisms, journal counts, article counts by time, COVID counts, and Scopus/NPI discipline agreement. It can also write kept rows to `processed_validated.parquet` and excluded rows to `processed_validation_excluded.parquet` instead of overwriting `processed.csv` in place.
+`validate-analysis` writes final-output validation tables for delay outliers, missingness/range checks, missingness mechanisms, journal counts, article counts by time, COVID counts, and Scopus/NPI discipline agreement. Quality-check failures are reported but do not make the command fail unless `--strict-checks` is passed. It can also write kept rows to `processed_validated.parquet` and excluded rows to `processed_validation_excluded.parquet` instead of overwriting `processed.csv` in place.
 
 `filter-counts` aggregates transform `.filters.csv` sidecars into one row-count/drop-count audit table.
 

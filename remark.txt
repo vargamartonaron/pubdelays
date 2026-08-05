@@ -1,0 +1,11 @@
+Reviewer-count decision (2026-08-05)
+
+The supplied peer-review export contains date_accepted, doi, date_reviewed, and
+review_round, but no reviewer identifier. The former preprocessing code set
+n_reviewers equal to the number of review-event rows. That quantity is already
+represented by n_reviews and is not a valid count of distinct reviewers.
+
+Until a source with a stable reviewer identifier is supplied, n_reviewers is
+retained in the public schema for compatibility but emitted as missing by the
+peer-review preprocessor. It is excluded from boosting-model features and must
+not be interpreted as a reviewer count.

@@ -51,8 +51,9 @@ sequenceDiagram
   participant SLURM as sbatch
   participant FS as filesystem
   User->>CLI: workflow --shards 64
-  CLI->>SLURM: parse array
-  SLURM->>FS: JSONL shards + parse manifests
+  CLI->>SLURM: baseline parse array, then update parse array
+  SLURM->>FS: separate JSONL shards + parse manifests
+  CLI->>SLURM: resolve live PubMed state by PMID
   CLI->>SLURM: prepare-transform afterok parse
   SLURM->>FS: transform_inputs.txt
   CLI->>SLURM: transform-shards array afterok prepare

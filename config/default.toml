@@ -6,6 +6,13 @@ transform_inputs = "data/manifests/transform_inputs.txt"
 [pubmed]
 xml_dir = "data/raw_data/pubmed/xmls"
 jsonl_dir = "data/temp_data/pubmed/jsonl"
+baseline_xml_dir = "data/raw_data/pubmed/baseline"
+update_xml_dir = "data/raw_data/pubmed/updatefiles"
+baseline_jsonl_dir = "data/temp_data/pubmed/baseline_jsonl"
+update_jsonl_dir = "data/temp_data/pubmed/update_jsonl"
+resolved_jsonl_dir = "data/temp_data/pubmed/resolved_jsonl"
+state_db = "data/temp_data/pubmed/state.sqlite"
+state_counts = "data/processed_data/pubmed_state_counts.json"
 
 [external.raw]
 scimago_dir = "data/raw_data/scimago"
@@ -34,6 +41,7 @@ norwegian_list = "data/processed_data/norwegian_list.csv"
 retraction_watch = "data/processed_data/retraction_watch.csv"
 publisher = "data/processed_data/publisher_metadata.csv"
 peer_review = "data/processed_data/peer_review.csv"
+exchange_rates = "data/processed_data/exchange_rates.csv"
 pubmed_journals = "data/external/pubmed-journals.csv"
 
 [transform]

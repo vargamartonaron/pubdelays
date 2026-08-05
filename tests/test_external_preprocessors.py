@@ -214,7 +214,7 @@ def test_peer_review_preprocessor_aggregates_raw_events_by_doi(tmp_path: Path) -
         "n_reviews": "2",
         "first_review_date": "2020-01-10",
         "last_review_date": "2020-01-20",
-        "n_reviewers": "2",
+        "n_reviewers": None,
         "date_first_accepted": "2020-02-01",
         "review_cycle_delay": "10",
     }

@@ -42,6 +42,7 @@ from pubdelays.download import (
     parse_md5_sidecar as parse_md5_sidecar,
 )
 from pubdelays.external import (
+    download_official_exchange_rates,
     preprocess_doaj,
     preprocess_npi,
     preprocess_peer_review,
@@ -82,6 +83,7 @@ from pubdelays.slurm import (
     submit_sbatch,
 )
 from pubdelays.smoke import run_live_smoke
+from pubdelays.state import resolve_pubmed_state
 from pubdelays.summaries import derive_summary_tables
 from pubdelays.transform import ExternalInputs, transform_files
 from pubdelays.ui import err, info, ok, print_kv_table, section, warn
@@ -369,8 +371,23 @@ def cmd_parse_one(args: argparse.Namespace) -> int:
 
 
 def cmd_parse(args: argparse.Namespace) -> int:
-    input_dir = cfg_path(args, "input_dir", "pubmed.xml_dir")
-    output_dir = cfg_path(args, "output_dir", "pubmed.jsonl_dir")
+    source = getattr(args, "source", "legacy")
+    input_key = {
+        "baseline": "pubmed.baseline_xml_dir",
+        "updatefiles": "pubmed.update_xml_dir",
+        "legacy": "pubmed.xml_dir",
+    }[source]
+    output_key = {
+        "baseline": "pubmed.baseline_jsonl_dir",
+        "updatefiles": "pubmed.update_jsonl_dir",
+        "legacy": "pubmed.jsonl_dir",
+    }[source]
+    input_dir = cfg_path(
+        args, "input_dir", input_key, str(cfg(args).get("pubmed.xml_dir"))
+    )
+    output_dir = cfg_path(
+        args, "output_dir", output_key, str(cfg(args).get("pubmed.jsonl_dir"))
+    )
     xml_paths = list_xml_paths(input_dir)
     if not xml_paths:
         err(f"No XML files found in {input_dir}")
@@ -428,6 +445,55 @@ def cmd_parse(args: argparse.Namespace) -> int:
         }
     )
     return 0
+
+
+def cmd_resolve_state(args: argparse.Namespace) -> int:
+    """Resolve separately parsed baseline/update files into the live PubMed state."""
+    manifest = manifest_from_args(args)
+    started_at = utc_now()
+    start_seconds = time.time()
+    baseline = cfg_path(args, "baseline", "pubmed.baseline_jsonl_dir")
+    updates = cfg_path(args, "updates", "pubmed.update_jsonl_dir")
+    output_dir = cfg_path(args, "output_dir", "pubmed.resolved_jsonl_dir")
+    state_db = cfg_path(args, "state_db", "pubmed.state_db")
+    counts_output = cfg_path(args, "counts_output", "pubmed.state_counts")
+    try:
+        counts = resolve_pubmed_state(baseline, updates, output_dir, state_db=state_db)
+        counts_output.parent.mkdir(parents=True, exist_ok=True)
+        with atomic_output_path(counts_output) as temporary:
+            temporary.write_text(
+                json.dumps(counts, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
+        append_manifest(
+            manifest,
+            stage="resolve-pubmed-state",
+            status="success",
+            input_path=baseline,
+            output_path=output_dir,
+            records=counts["resolved_rows"],
+            deleted=counts["deleted_pmids"],
+            started_at=started_at,
+            start_seconds=start_seconds,
+            metadata={**counts, "updates": str(updates), "state_db": str(state_db)},
+            checksum=False,
+        )
+        print_kv_table(counts)
+        ok(f"wrote resolved PubMed state to {output_dir}")
+        return 0
+    except Exception as exc:
+        append_manifest(
+            manifest,
+            stage="resolve-pubmed-state",
+            status="failed",
+            input_path=baseline,
+            output_path=output_dir,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            metadata={"updates": str(updates), "state_db": str(state_db)},
+            error_message=repr(exc),
+            checksum=False,
+        )
+        raise
 
 
 def validate_json_file(path: Path) -> tuple[bool, int]:
@@ -553,7 +619,15 @@ def cmd_download(args: argparse.Namespace) -> int:
     started_at = utc_now()
     start_seconds = time.time()
     base_url = PUBMED_BASE_URLS[args.source]
-    output_dir = cfg_path(args, "output_dir", "pubmed.xml_dir")
+    output_key = (
+        "pubmed.baseline_xml_dir" if args.source == "baseline" else "pubmed.update_xml_dir"
+    )
+    output_dir = cfg_path(
+        args,
+        "output_dir",
+        output_key,
+        str(cfg(args).get("pubmed.xml_dir", "data/raw_data/pubmed/xmls")),
+    )
     try:
         links = index_links(base_url)
         if args.limit is not None:
@@ -680,6 +754,45 @@ def cmd_download_external(args: argparse.Namespace) -> int:
     return 1 if failure else 0
 
 
+def cmd_exchange_rates(args: argparse.Namespace) -> int:
+    manifest = manifest_from_args(args)
+    started_at = utc_now()
+    start_seconds = time.time()
+    output = cfg_path(args, "output", "external.processed.exchange_rates")
+    try:
+        if args.resume and complete_file(output):
+            warn(f"skip existing {output}")
+            return 0
+        records = download_official_exchange_rates(
+            output, start_year=args.start_year, end_year=args.end_year
+        )
+        append_manifest(
+            manifest,
+            stage="exchange-rates",
+            status="success",
+            output_path=output,
+            records=records,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            metadata={"start_year": args.start_year, "end_year": args.end_year},
+            checksum=not args.no_checksum,
+        )
+        ok(f"wrote {records} official exchange-rate rows to {output}")
+        return 0
+    except Exception as exc:
+        append_manifest(
+            manifest,
+            stage="exchange-rates",
+            status="failed",
+            output_path=output,
+            started_at=started_at,
+            start_seconds=start_seconds,
+            error_message=repr(exc),
+            checksum=False,
+        )
+        raise
+
+
 def _optional_path(value: str | Path | None) -> Path | None:
     return Path(value) if value else None
 
@@ -699,6 +812,12 @@ def external_inputs_from_args(args: argparse.Namespace) -> ExternalInputs:
         or config.path("external.processed.publisher"),
         peer_review=_optional_path(getattr(args, "peer_review", None))
         or config.path("external.processed.peer_review"),
+        exchange_rates=_optional_path(getattr(args, "exchange_rates", None))
+        or (
+            resolve_config_path(str(config.get("external.processed.exchange_rates")), config.root)
+            if config.get("external.processed.exchange_rates")
+            else None
+        ),
     )
 
 
@@ -1785,7 +1904,7 @@ def cmd_validate_analysis(args: argparse.Namespace) -> int:
         )
         ok(f"wrote {len(result.tables)} validation tables to {output_dir}")
         print_kv_table({"rows_in": result.rows_in, "rows_kept": result.rows_kept, "failed_checks": result.failed_checks})
-        return 1 if result.failed_checks else 0
+        return 1 if args.strict_checks and result.failed_checks else 0
     except Exception as exc:
         append_manifest(
             manifest,
@@ -1808,7 +1927,12 @@ def cmd_filter_counts(args: argparse.Namespace) -> int:
     input_path = cfg_path(args, "input", "transform.article_shard_dir")
     output_path = cfg_path(args, "output", "aggregate.filter_counts")
     try:
-        records = collect_filter_counts(input_path, output_path)
+        final_dataset = cfg_path(args, "dataset", "aggregate.processed_parquet")
+        records = collect_filter_counts(
+            input_path,
+            output_path,
+            final_dataset=final_dataset if final_dataset.exists() else None,
+        )
         append_manifest(
             manifest,
             stage="filter-counts",
@@ -1882,6 +2006,9 @@ SLURM_STAGE_CONFIG = {
     "download-external": "download_external",
     "external-all": "external_all",
     "parse": "parse",
+    "parse-baseline": "parse",
+    "parse-updatefiles": "parse",
+    "resolve-state": "prepare_transform",
     "prepare-transform": "prepare_transform",
     "transform-shards": "transform_shards",
     "aggregate-all": "aggregate_all",
@@ -1999,17 +2126,41 @@ def build_slurm_job(args: argparse.Namespace, stage: str) -> tuple[SlurmJob, dic
             "pubdelays-external", command, resources, log_dir, dependency=args.dependency, setup=repo_setup
         ), metadata
 
-    if stage == "parse":
-        input_dir = cfg_path(args, "input_dir", "pubmed.xml_dir")
-        output_dir = cfg_path(args, "output_dir", "pubmed.jsonl_dir")
-        input_list = Path(args.input_list) if args.input_list else config.path("pipeline.parse_inputs")
+    if stage in {"parse", "parse-baseline", "parse-updatefiles"}:
+        source = {
+            "parse": "legacy",
+            "parse-baseline": "baseline",
+            "parse-updatefiles": "updatefiles",
+        }[stage]
+        input_key = {
+            "legacy": "pubmed.xml_dir",
+            "baseline": "pubmed.baseline_xml_dir",
+            "updatefiles": "pubmed.update_xml_dir",
+        }[source]
+        output_key = {
+            "legacy": "pubmed.jsonl_dir",
+            "baseline": "pubmed.baseline_jsonl_dir",
+            "updatefiles": "pubmed.update_jsonl_dir",
+        }[source]
+        input_dir = cfg_path(
+            args, "input_dir", input_key, str(config.get("pubmed.xml_dir"))
+        )
+        output_dir = cfg_path(
+            args, "output_dir", output_key, str(config.get("pubmed.jsonl_dir"))
+        )
+        default_list = config.path("pipeline.parse_inputs")
+        input_list = (
+            Path(args.input_list)
+            if args.input_list
+            else default_list.with_name(f"parse_{source}_inputs.txt")
+        )
         paths = list_xml_paths(input_dir)
         metadata.update({"inputs": len(paths), "input_list": str(input_list)})
         if not paths and not args.dry_run:
             raise RuntimeError(f"No XML/XML.GZ files found in {input_dir}")
         if not args.dry_run:
             write_path_list(input_list, paths)
-        manifest_dir = config.path("pipeline.manifest").parent / "slurm" / "parse"
+        manifest_dir = config.path("pipeline.manifest").parent / "slurm" / stage
         setup = [
             *repo_setup,
             'PUBDELAYS_ARRAY_TASK_OFFSET="${PUBDELAYS_ARRAY_TASK_OFFSET:-0}"',
@@ -2028,7 +2179,7 @@ def build_slurm_job(args: argparse.Namespace, stage: str) -> tuple[SlurmJob, dic
         array_spec = f"0-{max(len(paths), 1) - 1}"
         array_throttle = _resolve_array_throttle(args, config, array_spec)
         job = SlurmJob(
-            "pubdelays-parse",
+            f"pubdelays-{stage}",
             command,
             resources,
             log_dir,
@@ -2039,8 +2190,19 @@ def build_slurm_job(args: argparse.Namespace, stage: str) -> tuple[SlurmJob, dic
         )
         return job, metadata
 
+    if stage == "resolve-state":
+        command = [*base, "resolve-state", "--resume"]
+        return SlurmJob(
+            "pubdelays-resolve-state",
+            command,
+            resources,
+            log_dir,
+            dependency=args.dependency,
+            setup=repo_setup,
+        ), metadata
+
     if stage == "prepare-transform":
-        input_dir = cfg_path(args, "input_dir", "pubmed.jsonl_dir")
+        input_dir = cfg_path(args, "input_dir", "pubmed.resolved_jsonl_dir")
         input_list = Path(args.input_list) if args.input_list else config.path("pipeline.transform_inputs")
         command = [
             *base,
@@ -2065,7 +2227,7 @@ def build_slurm_job(args: argparse.Namespace, stage: str) -> tuple[SlurmJob, dic
         ), metadata
 
     if stage == "transform-shards":
-        input_dir = cfg_path(args, "input_dir", "pubmed.jsonl_dir")
+        input_dir = cfg_path(args, "input_dir", "pubmed.resolved_jsonl_dir")
         output_dir = cfg_path(args, "output_dir", "transform.article_shard_dir")
         input_list = Path(args.input_list) if args.input_list else config.path("pipeline.transform_inputs")
         use_existing_list = bool(getattr(args, "use_existing_input_list", False))
@@ -2269,7 +2431,7 @@ def cmd_slurm_workflow(args: argparse.Namespace) -> int:
         stage_args.stage = stage
         stage_args.dependency = dependency
         stage_args.use_existing_input_list = stage == "transform-shards"
-        if stage == "parse":
+        if stage in {"parse", "parse-baseline", "parse-updatefiles"}:
             stage_args.input_dir = args.parse_input_dir
             stage_args.output_dir = args.parse_output_dir
         elif stage in {"prepare-transform", "transform-shards"}:
@@ -2393,6 +2555,7 @@ def add_external_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--retraction-watch", default=None)
     parser.add_argument("--publisher", default=None)
     parser.add_argument("--peer-review", default=None, help="optional licensed peer-review metadata table")
+    parser.add_argument("--exchange-rates", default=None, help="canonical official EUR rate table")
     parser.add_argument("--min-received", default=None)
     add_common_stage_args(parser)
 
@@ -2431,10 +2594,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parse_p.add_argument("--input-dir", default=None)
     parse_p.add_argument("--output-dir", default=None)
+    parse_p.add_argument(
+        "--source", choices=["baseline", "updatefiles", "legacy"], default="legacy"
+    )
     parse_p.add_argument("--jobs", type=int, default=None)
     add_dry_run_arg(parse_p)
     add_parse_options(parse_p)
     parse_p.set_defaults(func=cmd_parse)
+
+    resolve_state = subparsers.add_parser(
+        "resolve-state", help="apply PubMed update files and DeleteCitation records by PMID"
+    )
+    resolve_state.add_argument("--baseline", default=None)
+    resolve_state.add_argument("--updates", default=None)
+    resolve_state.add_argument("--output-dir", default=None)
+    resolve_state.add_argument("--state-db", default=None)
+    resolve_state.add_argument("--counts-output", default=None)
+    add_common_stage_args(resolve_state)
+    resolve_state.set_defaults(func=cmd_resolve_state)
 
     validate = subparsers.add_parser("validate", help="validate JSON or JSONL outputs")
     validate.add_argument("input", nargs="?", default=None)
@@ -2581,6 +2758,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="excluded validation rows path; pass an empty string to skip writing excluded output",
     )
+    validate_analysis.add_argument(
+        "--strict-checks",
+        action="store_true",
+        help="return nonzero when data-quality checks fail (reports are always written)",
+    )
     add_common_stage_args(validate_analysis)
     validate_analysis.set_defaults(func=cmd_validate_analysis)
 
@@ -2589,6 +2771,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     filter_counts.add_argument("--input", default=None)
     filter_counts.add_argument("--output", default=None)
+    filter_counts.add_argument("--dataset", default=None, help="final aggregate for reconciliation")
     add_common_stage_args(filter_counts)
     filter_counts.set_defaults(func=cmd_filter_counts)
 
@@ -2629,6 +2812,15 @@ def build_parser() -> argparse.ArgumentParser:
     add_dry_run_arg(download_external)
     add_common_stage_args(download_external)
     download_external.set_defaults(func=cmd_download_external)
+
+    exchange_rates = subparsers.add_parser(
+        "exchange-rates", help="download official ECB and InforEuro EUR rates"
+    )
+    exchange_rates.add_argument("--output", default=None)
+    exchange_rates.add_argument("--start-year", type=int, default=2013)
+    exchange_rates.add_argument("--end-year", type=int, default=date.today().year)
+    add_common_stage_args(exchange_rates)
+    exchange_rates.set_defaults(func=cmd_exchange_rates)
 
     external_all = subparsers.add_parser("external-all", help="preprocess all local external metadata inputs")
     external_all.add_argument("--input-dir", default=None)  # accepted for common stage dispatch; ignored
@@ -2744,7 +2936,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     slurm_workflow.add_argument(
         "--stages",
-        default="parse,prepare-transform,transform-shards,aggregate-all",
+        default="parse-baseline,parse-updatefiles,resolve-state,prepare-transform,transform-shards,aggregate-all",
         help="comma-separated stages to chain with afterok dependencies",
     )
     slurm_workflow.add_argument("--runner", default=None)

@@ -7,7 +7,8 @@ generated processed table as the source of truth.
 
 ## Public inputs
 
-- **PubMed/MEDLINE:** run `pubdelays download --source baseline`. NLM describes the
+- **PubMed/MEDLINE:** run `pubdelays download --source baseline` and
+  `pubdelays download --source updatefiles`. NLM describes the
   annual baseline as a complete snapshot and requires daily update files to be
   applied after the baseline, in numeric order, with revised and deleted citations
   replacing prior records: <https://pubmed.ncbi.nlm.nih.gov/download/>. For a small
@@ -18,6 +19,12 @@ generated processed table as the source of truth.
 - **Retraction Watch:** run `pubdelays download-external --source retraction-watch`.
   Crossref documents the GitLab CSV as the complete dataset, updated each working
   day: <https://www.crossref.org/documentation/retrieve-metadata/retraction-watch/>.
+- **EUR exchange rates:** run `pubdelays exchange-rates --start-year 2013`. This
+  creates one canonical local table from the ECB daily EXR API and the European
+  Commission's official monthly InforEuro API. The APC converter uses ECB first and
+  InforEuro only when no prior ECB observation exists for that currency/date.
+  Official descriptions: <https://data.ecb.europa.eu/help/api/data-examples> and
+  <https://commission.europa.eu/funding-and-tenders/procedures-guidelines-tenders/information-contractors-and-beneficiaries/exchange-rate-inforeuro_en>.
 
 Downloads are written under `data/raw_data/`; PubMed files are accepted only with a
 matching MD5 sidecar. The manifest records stage inputs, outputs, counts, status,

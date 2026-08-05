@@ -6,7 +6,7 @@ from pathlib import Path
 
 import polars as pl
 
-ANALYSIS_DATASET_VERSION = "analysis_dataset_v2"
+ANALYSIS_DATASET_VERSION = "analysis_dataset_v3"
 
 REQUIRED_PARSED_FIELDS: tuple[str, ...] = (
     "history",
@@ -28,7 +28,7 @@ FILTER_STAGES: tuple[str, ...] = (
     "nonnegative_delays",
     "after_external_joins",
     "eligible_journal_metadata",
-    "distinct_titles",
+    "distinct_articles",
     "final_rows",
 )
 
@@ -50,6 +50,7 @@ PEER_REVIEW_COLUMNS: tuple[str, ...] = (
 # Public analysis dataset column order. Optional metadata columns are emitted as
 # empty strings when their source table is not supplied.
 CANONICAL_ARTICLE_COLUMNS: tuple[str, ...] = (
+    "pmid",
     "is_covid",
     "received",
     "article_date",
@@ -60,6 +61,16 @@ CANONICAL_ARTICLE_COLUMNS: tuple[str, ...] = (
     "issn_linking",
     "h_index_year",
     "open_access",
+    "match_scimago",
+    "match_scopus",
+    "match_doaj",
+    "match_npi",
+    "match_publisher",
+    "match_peer_review",
+    "open_access_doaj_evidence",
+    "open_access_scopus_evidence",
+    "open_access_npi_evidence",
+    "open_access_evidence_sources",
     "publication_delay",
     "publication_types",
     "title",
@@ -84,6 +95,14 @@ CANONICAL_ARTICLE_COLUMNS: tuple[str, ...] = (
     "keywords",
     "apc",
     "apc_amount",
+    "apc_eur_proxy",
+    "apc_eur_proxy_min",
+    "apc_eur_proxy_max",
+    "apc_quote_count",
+    "apc_fx_sources",
+    "apc_fx_rate_start",
+    "apc_fx_rate_end",
+    "apc_conversion_status",
     "doi",
     "retraction_nature",
     "reason",
