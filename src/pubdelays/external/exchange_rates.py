@@ -5,6 +5,8 @@ from __future__ import annotations
 import csv
 import io
 import json
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import date
@@ -19,9 +21,29 @@ ECB_URL = "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A"
 INFOEURO_URL = "https://ec.europa.eu/budg/inforeuro/api/public/monthly-rates"
 
 
-def _read_url(url: str) -> bytes:
-    with urllib.request.urlopen(download_request(url), timeout=120) as response:
-        return response.read()
+def _read_url(url: str, *, retries: int = 5) -> bytes:
+    last: BaseException | None = None
+    for attempt in range(max(retries, 1)):
+        try:
+            with urllib.request.urlopen(download_request(url), timeout=120) as response:
+                return response.read()
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            last = exc
+            if attempt < retries - 1:
+                time.sleep(min(2**attempt, 30))
+    raise RuntimeError(f"failed to download official exchange rates from {url}: {last!r}")
+
+
+def _read_json_url(url: str, *, retries: int = 5) -> object:
+    last: BaseException | None = None
+    for attempt in range(max(retries, 1)):
+        try:
+            return json.loads(_read_url(url).decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            last = exc
+            if attempt < retries - 1:
+                time.sleep(min(2**attempt, 30))
+    raise RuntimeError(f"invalid JSON from official exchange-rate endpoint {url}: {last!r}")
 
 
 def download_official_exchange_rates(
@@ -53,8 +75,8 @@ def download_official_exchange_rates(
         for month in range(1, 13):
             if date(year, month, 1) > date.today().replace(day=1):
                 break
-            payload = json.loads(
-                _read_url(f"{INFOEURO_URL}?{urllib.parse.urlencode({'year': year, 'month': month})}")
+            payload = _read_json_url(
+                f"{INFOEURO_URL}?{urllib.parse.urlencode({'year': year, 'month': month})}"
             )
             for item in payload:
                 currency = str(item.get("isoA3Code") or "").upper()
