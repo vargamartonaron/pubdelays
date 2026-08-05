@@ -31,7 +31,7 @@ pubdelays download-external --source all --resume
 ```
 
 !!! note "External source limits"
-    DOAJ and Retraction Watch have configured public URLs in `config/default.toml`. SCImago and publisher downloads run only when URL settings are provided. Web of Science and Norwegian Publication Indicator inputs require manual or licensed source selection.
+    DOAJ and Retraction Watch have configured public URLs in `config/default.toml`. SCImago and publisher downloads run only when URL settings are provided. Scopus Source List and Norwegian Publication Indicator inputs require manual source selection.
 
 ## Run stages locally
 

@@ -82,7 +82,7 @@ pubdelays external-retraction-watch --resume
 pubdelays external-publisher --resume
 ```
 
-`download-external --source all` includes configured public sources. Web of Science and Norwegian Publication Indicator snapshots remain manual/licensed inputs in the default docs.
+`download-external --source all` includes configured public sources. Scopus Source List and Norwegian Publication Indicator snapshots remain manual inputs in the default docs.
 
 ## Transform and aggregate
 
@@ -103,7 +103,7 @@ pubdelays quality-report
 
 `run-analysis` runs the configured study-specific command from `[analysis]`, captures stdout/stderr, and records the subprocess status in the manifest. The core CLI does not encode analysis semantics such as GAMs or plot definitions.
 
-`validate-analysis` writes final-output validation tables for delay outliers, missingness/range checks, missingness mechanisms, journal counts, article counts by time, COVID counts, and Web of Science/NPI discipline agreement. It can also write kept rows to `processed_validated.parquet` and excluded rows to `processed_validation_excluded.parquet` instead of overwriting `processed.csv` in place.
+`validate-analysis` writes final-output validation tables for delay outliers, missingness/range checks, missingness mechanisms, journal counts, article counts by time, COVID counts, and Scopus/NPI discipline agreement. It can also write kept rows to `processed_validated.parquet` and excluded rows to `processed_validation_excluded.parquet` instead of overwriting `processed.csv` in place.
 
 `filter-counts` aggregates transform `.filters.csv` sidecars into one row-count/drop-count audit table.
 

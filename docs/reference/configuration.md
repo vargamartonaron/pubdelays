@@ -41,7 +41,7 @@ icon: octicons/gear-16
 External raw paths live under `[external.raw]`; normalized outputs live under `[external.processed]`. Transform commands read processed outputs unless a CLI override such as `--scimago` or `--doaj` is supplied. Peer-review metadata is optional and private; when present, put the raw table at `external.raw.peer_review_csv` or a cleaned table at `external.processed.peer_review`, or pass `--peer-review` directly.
 
 !!! warning "Licensed/manual sources"
-    Default public URLs exist for DOAJ and Retraction Watch. Web of Science and Norwegian Publication Indicator paths are declared but the source snapshots are not downloaded by the repository.
+    Default public URLs exist for DOAJ and Retraction Watch. Scopus Source List and Norwegian Publication Indicator paths are declared but the source snapshots are not downloaded by the repository. Scopus retains legacy `web_of_science` config keys for compatibility.
 
 ## SLURM resources
 

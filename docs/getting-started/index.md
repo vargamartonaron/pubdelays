@@ -31,4 +31,4 @@ Use this section when you are setting up a checkout or preparing a first pipelin
 </div>
 
 !!! warning "Raw data is not bundled"
-    `init-dirs` creates directories only. PubMed baseline/update XML files and licensed/manual metadata such as Web of Science and Norwegian Publication Indicator snapshots must be placed in the configured raw-data paths before a full run.
+    `init-dirs` creates directories only. PubMed baseline/update XML files and manual metadata such as the Scopus Source List and Norwegian Publication Indicator snapshots must be placed in the configured raw-data paths before a full run.

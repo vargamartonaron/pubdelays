@@ -34,7 +34,7 @@ This page maps CLI commands to source functions and files. Use it when you need 
 | --- | --- | --- | --- |
 | `cmd_external_all()` | `src/pubdelays/cli.py` | Configured raw metadata paths. | Processed lookup CSVs. |
 | `preprocess_scimago()` | `src/pubdelays/external/scimago.py` | Yearly SCImago CSVs. | ISSN/year journal metrics. |
-| `preprocess_wos()` | `src/pubdelays/external/wos.py` | Web of Science CSV. | ISSN-keyed discipline and ASJC fields. |
+| `preprocess_wos()` | `src/pubdelays/external/wos.py` | Scopus Source List CSV. | ISSN-keyed discipline and ASJC fields; function name retained for compatibility. |
 | `preprocess_doaj()` | `src/pubdelays/external/doaj.py` | DOAJ CSV. | ISSN-keyed open-access/APC fields. |
 | `preprocess_npi()` | `src/pubdelays/external/npi.py` | Norwegian Publication Indicator CSV. | ISSN-keyed NPI fields. |
 | `preprocess_retraction_watch()` | `src/pubdelays/external/retraction_watch.py` | Retraction Watch CSV. | DOI-keyed retraction fields. |

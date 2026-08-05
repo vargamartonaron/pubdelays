@@ -152,7 +152,7 @@ def write_external_inputs(root: Path) -> None:
     scimago.mkdir(parents=True)
     header = "Title;Issn;SJR Best Quartile;H index;Rank;SJR\n"
     row = "Example Journal;1234-5678;Q1;50;10;1.2\n"
-    for year in range(2015, 2025):
+    for year in range(2015, 2026):
         (scimago / f"scimagojr {year}.csv").write_text(header + row, encoding="utf-8")
 
     (root / "data/raw_data/web_of_science").mkdir(parents=True)

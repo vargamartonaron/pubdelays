@@ -623,12 +623,12 @@ _CURRENT_COLUMNS: set[str] = set()
 
 def year_lookup_expr(df: pl.DataFrame, prefix: str, year_column: str) -> pl.Expr:
     year_expr = (
-        pl.when(pl.col(year_column) >= 2025)
-        .then(pl.lit(2024))
+        pl.when(pl.col(year_column) >= 2026)
+        .then(pl.lit(2025))
         .otherwise(pl.col(year_column))
     )
     result = pl.lit(None).cast(pl.Utf8)
-    for year in range(2015, 2025):
+    for year in range(2015, 2026):
         if prefix == "npi_level":
             candidates = [f"npi_level_{str(year)[-2:]}", f"npi_level_{year}"]
         else:

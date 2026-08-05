@@ -2624,7 +2624,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="all",
     )
     download_external.add_argument("--start-year", type=int, default=2015)
-    download_external.add_argument("--end-year", type=int, default=2024)
+    download_external.add_argument("--end-year", type=int, default=2025)
     download_external.add_argument("--retries", type=int, default=5)
     add_dry_run_arg(download_external)
     add_common_stage_args(download_external)
@@ -2639,7 +2639,7 @@ def build_parser() -> argparse.ArgumentParser:
     external_all.add_argument("--peer-review-input", default=None)
     external_all.add_argument("--peer-review-output", default=None)
     external_all.add_argument("--start-year", type=int, default=2015)
-    external_all.add_argument("--end-year", type=int, default=2024)
+    external_all.add_argument("--end-year", type=int, default=2025)
     add_dry_run_arg(external_all)
     add_common_stage_args(external_all)
     external_all.set_defaults(func=cmd_external_all)
@@ -2648,11 +2648,11 @@ def build_parser() -> argparse.ArgumentParser:
     scimago.add_argument("--input-dir", default=None)
     scimago.add_argument("--output", default=None)
     scimago.add_argument("--start-year", type=int, default=2015)
-    scimago.add_argument("--end-year", type=int, default=2024)
+    scimago.add_argument("--end-year", type=int, default=2025)
     add_common_stage_args(scimago)
     scimago.set_defaults(func=cmd_external_scimago)
 
-    wos = subparsers.add_parser("external-wos", help="clean raw Web of Science CSV")
+    wos = subparsers.add_parser("external-wos", help="clean a raw Scopus Source List CSV")
     wos.add_argument("--input", default=None)
     wos.add_argument("--output", default=None)
     add_common_stage_args(wos)
@@ -2723,7 +2723,7 @@ def build_parser() -> argparse.ArgumentParser:
     slurm_submit.add_argument("--shards", type=int, default=64)
     slurm_submit.add_argument("--format", choices=["parquet", "tsv", "csv"], default="parquet")
     slurm_submit.add_argument("--start-year", type=int, default=2015)
-    slurm_submit.add_argument("--end-year", type=int, default=2024)
+    slurm_submit.add_argument("--end-year", type=int, default=2025)
     slurm_submit.add_argument(
         "--array-throttle",
         type=int,
@@ -2768,7 +2768,7 @@ def build_parser() -> argparse.ArgumentParser:
     slurm_workflow.add_argument("--jobs", type=int, default=4)
     slurm_workflow.add_argument("--limit", type=int, default=None)
     slurm_workflow.add_argument("--start-year", type=int, default=2015)
-    slurm_workflow.add_argument("--end-year", type=int, default=2024)
+    slurm_workflow.add_argument("--end-year", type=int, default=2025)
     slurm_workflow.add_argument(
         "--array-throttle",
         type=int,

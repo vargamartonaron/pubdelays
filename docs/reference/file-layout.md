@@ -14,7 +14,7 @@ All paths are repository-relative unless `config/default.toml` or `--config` poi
 data/raw_data/pubmed/xmls/                          PubMed baseline/update XML or XML.GZ files
 data/raw_data/pubmed/xmls/*.xml.gz.md5              PubMed MD5 sidecars
 data/raw_data/scimago/scimagojr <year>.csv          Yearly SCImago exports
-data/raw_data/web_of_science/wos.csv                Web of Science journal categories
+data/raw_data/web_of_science/scopus_source_list_2026_06.csv  Scopus journal categories (legacy directory name)
 data/raw_data/directory_of_open_access_journals/    DOAJ journal CSV
 data/raw_data/norwegian_publication_indicator/      Norwegian Publication Indicator CSV
 data/raw_data/retraction_watch/retraction_watch.csv Retraction Watch CSV

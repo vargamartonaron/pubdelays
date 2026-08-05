@@ -9,9 +9,9 @@ jsonl_dir = "data/temp_data/pubmed/jsonl"
 
 [external.raw]
 scimago_dir = "data/raw_data/scimago"
-web_of_science_csv = "data/raw_data/web_of_science/wos.csv"
-doaj_csv = "data/raw_data/directory_of_open_access_journals/doaj_2025_05_15.csv"
-norwegian_list_csv = "data/raw_data/norwegian_publication_indicator/norwegian_list_2025_05_14.csv"
+web_of_science_csv = "data/raw_data/web_of_science/scopus_source_list_2026_06.csv"
+doaj_csv = "data/raw_data/directory_of_open_access_journals/doaj_journalcsv_20260705_2321_utf8.csv"
+norwegian_list_csv = "data/raw_data/norwegian_publication_indicator/norwegian_list_2026_08_05.csv"
 retraction_watch_csv = "data/raw_data/retraction_watch/retraction_watch.csv"
 publisher_csv = "data/raw_data/publisher_metadata/publishers.csv"
 # Optional private/licensed metadata; not downloaded by this pipeline.
@@ -24,7 +24,7 @@ retraction_watch_url = "https://gitlab.com/crossref/retraction-watch-data/-/raw/
 # Use an institutional/internal mirror or file:// URL template that contains {year}.
 scimago_url_template = ""
 publisher_url = ""
-# Web of Science and Norwegian Publication Indicator snapshots require licensed/manual source selection for now.
+# Scopus Source List and Norwegian Publication Indicator snapshots require manual source selection for now.
 
 [external.processed]
 scimago = "data/processed_data/scimago.csv"

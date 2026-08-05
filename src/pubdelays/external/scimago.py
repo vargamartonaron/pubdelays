@@ -17,6 +17,10 @@ from .common import (
 
 SCIMAGO_FIELDS = [
     "issn_linking",
+    "quartile_2025",
+    "h_index_2025",
+    "rank_2025",
+    "sjr_2025",
     "quartile_2024",
     "h_index_2024",
     "journal_title",
@@ -144,18 +148,18 @@ def _read_scimago_file(path: Path, year: int) -> pl.DataFrame:
         .filter(pl.col("issn_linking") != "")
     )
 
-    if year == 2024:
+    if year >= 2024:
         return df.group_by("issn_linking", maintain_order=True).agg(
-            pl.col("sjr_best_quartile").first().alias("quartile_2024"),
-            pl.col("h_index").first().alias("h_index_2024"),
+            pl.col("sjr_best_quartile").first().alias(f"quartile_{year}"),
+            pl.col("h_index").first().alias(f"h_index_{year}"),
             pl.col("title").first().alias("journal_title"),
             pl.col("scimago_category")
             .filter(pl.col("scimago_category") != "")
             .unique(maintain_order=True)
             .str.join("|")
             .alias("scimago_categories"),
-            pl.col("rank").first().alias("rank_2024"),
-            pl.col("sjr").first().alias("sjr_2024"),
+            pl.col("rank").first().alias(f"rank_{year}"),
+            pl.col("sjr").first().alias(f"sjr_{year}"),
         )
     return df.group_by("issn_linking", maintain_order=True).agg(
         pl.col("sjr_best_quartile").first().alias(f"quartile_{year}"),
@@ -166,13 +170,14 @@ def _read_scimago_file(path: Path, year: int) -> pl.DataFrame:
 
 
 def preprocess_scimago(
-    input_dir: Path, output: Path, *, start_year: int = 2015, end_year: int = 2024
+    input_dir: Path, output: Path, *, start_year: int = 2015, end_year: int = 2025
 ) -> int:
     input_dir = Path(input_dir)
     scimago = _read_scimago_file(input_dir / f"scimagojr {end_year}.csv", end_year)
     scimago = first_by_key(
         scimago.filter(
-            pl.col("quartile_2024").is_not_null() & (pl.col("quartile_2024") != "")
+            pl.col(f"quartile_{end_year}").is_not_null()
+            & (pl.col(f"quartile_{end_year}") != "")
         ),
         "issn_linking",
     )

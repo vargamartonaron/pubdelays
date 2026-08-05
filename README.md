@@ -59,7 +59,7 @@ Place existing raw files as documented in `docs/reference/file-layout.md`:
 ```text
 data/raw_data/pubmed/xmls/*.xml.gz
 data/raw_data/scimago/scimagojr 2015.csv ... scimagojr 2024.csv
-data/raw_data/web_of_science/wos.csv
+data/raw_data/web_of_science/scopus_source_list_2026_06.csv
 data/raw_data/directory_of_open_access_journals/doaj_2025_05_15.csv
 data/raw_data/norwegian_publication_indicator/norwegian_list_2025_05_14.csv
 data/raw_data/retraction_watch/retraction_watch.csv
@@ -126,7 +126,7 @@ pubdelays download-external --source all --resume
 pubdelays external-all --resume
 ```
 
-`download-external --source all --dry-run` lists configured public metadata downloads. DOAJ uses the public journal CSV at `https://doaj.org/csv`; Retraction Watch uses Crossref's public GitLab mirror. SCImago and publisher metadata are included automatically when `external.download.scimago_url_template` and `external.download.publisher_url` are set in the config. SCImago's interactive export URL can return HTTP 403 to scripted clients; use yearly local files or an internal `{year}` mirror instead. Web of Science and Norwegian Publication Indicator snapshots still require licensed/manual source selection, so their raw paths remain documented in `docs/reference/file-layout.md`.
+`download-external --source all --dry-run` lists configured public metadata downloads. DOAJ uses the public journal CSV at `https://doaj.org/csv`; Retraction Watch uses Crossref's public GitLab mirror. SCImago and publisher metadata are included automatically when `external.download.scimago_url_template` and `external.download.publisher_url` are set in the config. SCImago's interactive export URL can return HTTP 403 to scripted clients; use yearly local files or an internal `{year}` mirror instead. The Scopus Source List and Norwegian Publication Indicator snapshots still require manual source selection, so their raw paths remain documented in `docs/reference/file-layout.md`. Legacy code and config identifiers retain `web_of_science` for compatibility.
 
 Parse XML:
 

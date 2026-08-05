@@ -9,7 +9,11 @@ import polars as pl
 
 from pubdelays.schema import CANONICAL_ARTICLE_COLUMNS
 from pubdelays.transform import ExternalInputs, transform_files
-from pubdelays.transform.articles import first_stage_record, journal_metadata_eligible
+from pubdelays.transform.articles import (
+    first_stage_record,
+    journal_metadata_eligible,
+    year_lookup_expr,
+)
 
 
 def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
@@ -22,6 +26,21 @@ def read_output(path: Path) -> list[dict[str, object]]:
     if path.suffix == ".tsv":
         return pl.read_csv(path, separator="\t").to_dicts()
     return pl.read_csv(path).to_dicts()
+
+
+def test_year_lookup_uses_2025_and_caps_future_years() -> None:
+    frame = pl.DataFrame(
+        {"article_year": [2024, 2025, 2026], "quartile_2024": ["Q2"] * 3, "quartile_2025": ["Q1"] * 3}
+    )
+
+    values = frame.select(
+        year_lookup_expr(frame, "quartile", "article_year").alias("value")
+    )["value"].to_list()
+    assert values == [
+        "Q2",
+        "Q1",
+        "Q1",
+    ]
 
 
 def test_transform_excludes_blank_title_before_deduplication(tmp_path: Path) -> None:

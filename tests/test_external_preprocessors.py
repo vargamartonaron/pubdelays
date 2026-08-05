@@ -135,6 +135,19 @@ def test_wos_discipline_boundaries_match_documented_case_when() -> None:
     assert discipline_for_asjc(3616) == "health_sciences"
 
 
+def test_scopus_source_list_accepts_current_issn_header(tmp_path: Path) -> None:
+    raw = tmp_path / "scopus.csv"
+    raw.write_text(
+        "Source Title,ISSN,EISSN,Source Type,All Science Journal Classification Codes (ASJC),Open Access Status\n"
+        "Journal A,1234-567X,2222-3333,Journal,2700,DOAJ\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "scopus_out.csv"
+
+    assert preprocess_wos(raw, out) == 2
+    assert {row["issn_linking"] for row in rows(out)} == {"1234567X", "22223333"}
+
+
 def test_scimago_preprocessor_preserves_multiple_categories(tmp_path: Path) -> None:
     for year in (2023, 2024):
         raw = tmp_path / f"scimagojr {year}.csv"
@@ -150,6 +163,19 @@ def test_scimago_preprocessor_preserves_multiple_categories(tmp_path: Path) -> N
     assert data[0]["issn_linking"] == "1234567X"
     assert data[0]["scimago_categories"] == "Psychology|Medicine"
     assert data[1]["scimago_categories"] == "Psychology|Medicine"
+
+
+def test_scimago_preprocessor_uses_2025_snapshot(tmp_path: Path) -> None:
+    for year, quartile in ((2024, "Q2"), (2025, "Q1")):
+        (tmp_path / f"scimagojr {year}.csv").write_text(
+            "Title;Issn;SJR Best Quartile;H index;Rank;SJR;Categories\n"
+            f'Journal A;"1234-567X";{quartile};50;10;2.5;Medicine\n',
+            encoding="utf-8",
+        )
+    out = tmp_path / "scimago.csv"
+
+    assert preprocess_scimago(tmp_path, out, start_year=2024, end_year=2025) == 1
+    assert rows(out)[0]["quartile_2025"] == "Q1"
 
 
 def test_scimago_preprocessor_repairs_unescaped_publisher_quotes(tmp_path: Path) -> None:

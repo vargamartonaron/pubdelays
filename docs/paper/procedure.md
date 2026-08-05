@@ -3,7 +3,7 @@
 ## Data sources and reproducibility
 
 We constructed an article-level dataset from PubMed/MEDLINE XML and attached
-journal- or article-level metadata from SCImago Journal Rank, Web of Science, the
+journal- or article-level metadata from SCImago Journal Rank, the Scopus Source List, the
 Directory of Open Access Journals (DOAJ), the Norwegian Publication Indicator (NPI),
 study-curated publisher metadata, Retraction Watch, and, when lawfully supplied, an
 optional private peer-review dataset. PubMed was the source of article titles,
@@ -65,10 +65,9 @@ as empty fields in the canonical public schema; categorical model inputs subsequ
 use an explicit `__MISSING__` level and numeric inputs remain missing for CatBoost's
 native handling.
 
-Year-specific SCImago and NPI values were selected using publication year. Under the
-available snapshots, 2025 SCImago values use the 2024 snapshot and years after 2024
-currently use the 2024 NPI lookup. Open access was `True` when any implemented DOAJ,
-Web of Science, or NPI condition was positive. Megajournal status used the fixed list
+Year-specific SCImago and NPI values were selected using publication year through
+2025. Open access was `True` when any implemented DOAJ, Scopus Source List, or NPI
+condition was positive. Megajournal status used the fixed list
 of 21 linking ISSNs encoded in the schema. COVID-19 status was based on a
 case-insensitive controlled synonym search across title and keywords. A record was
 classified as retracted when a DOI-matched Retraction Watch record contained a
@@ -86,8 +85,8 @@ derivation, units, and missingness interpretation. The source overview is:
 | `received`, `article_date`, `article_date_raw`, `publication_date_source`, `acceptance_delay`, `publication_delay`, `publication_types`, `title`, `journal`, `issn_linking`, `keywords`, `doi`, `is_covid` | article/journal | PubMed/MEDLINE; delays and COVID flag derived |
 | `is_mega` | journal | fixed study classification by linking ISSN |
 | `h_index_year`, `quartile_year`, `rank_year`, `scimago_categories` | journal-year | SCImago Journal Rank |
-| `discipline`, `asjc`, `discipline_all`, `asjc_all` | journal | Web of Science |
-| `open_access` | journal | derived from DOAJ, Web of Science, and NPI |
+| `discipline`, `asjc`, `discipline_all`, `asjc_all` | journal | Scopus Source List |
+| `open_access` | journal | derived from DOAJ, Scopus Source List, and NPI |
 | `publisher`, `publisher_group`, `publisher_conflict`, `publisher_group_conflict` | journal | study-curated publisher metadata |
 | `npi_discipline`, `npi_field`, `npi_year`, `is_series`, `established`, `country` | journal/journal-year | NPI, with country fallback from available journal metadata |
 | `apc`, `apc_amount` | journal | DOAJ |

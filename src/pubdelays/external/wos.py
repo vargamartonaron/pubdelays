@@ -1,4 +1,4 @@
-"""Web of Science preprocessing, implemented with Polars."""
+"""Scopus Source List preprocessing, under legacy ``wos`` identifiers."""
 
 from __future__ import annotations
 
@@ -119,6 +119,10 @@ def discipline_expr(expr: pl.Expr) -> pl.Expr:
 
 def preprocess_wos(input_csv: Path, output: Path) -> int:
     df = normalize_columns(read_csv_polars(Path(input_csv)))
+    if "issn" in df.columns and "print_issn" not in df.columns:
+        df = df.rename({"issn": "print_issn"})
+    if "eissn" in df.columns and "e_issn" not in df.columns:
+        df = df.rename({"eissn": "e_issn"})
     needed = [
         "source_title",
         "print_issn",

@@ -3,7 +3,7 @@ flowchart LR
   parse --> jsonl["Parsed JSONL shards\ndata/temp_data/pubmed/jsonl"]
 
   scimago["SCImago yearly CSVs"] --> external["external-* preprocessors\nsrc/pubdelays/external"]
-  wos["Web of Science CSV"] --> external
+  wos["Scopus Source List CSV"] --> external
   doaj["DOAJ CSV"] --> external
   npi["NPI CSV"] --> external
   rw["Retraction Watch CSV"] --> external

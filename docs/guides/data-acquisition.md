@@ -27,13 +27,13 @@ checksums, and configuration.
 
 - **SCImago:** download the required annual journal-rank exports through SCImago's
   interactive export and place `scimagojr YYYY.csv` files in the configured
-  `external.raw.scimago_dir`. The analysis expects 2015–2024 snapshots. Automated
+  `external.raw.scimago_dir`. The analysis expects 2015–2025 snapshots. Automated
   scripted requests may be rejected, so the repository does not pretend this is a
   stable unattended endpoint.
-- **Web of Science:** obtain the authorized title/category export appropriate to the
-  study and place it at `external.raw.web_of_science_csv`. Clarivate identifies the
-  freely accessible Master Journal List as the authoritative coverage source and
-  supports downloadable title lists: <https://clarivate.com/academia-government/scientific-and-academic-research/research-discovery-and-referencing/web-of-science/web-of-science-core-collection/>.
+- **Scopus Source List:** obtain the source-list export appropriate to the study and
+  place it at `external.raw.web_of_science_csv`. The config key is retained for
+  backward compatibility. Preserve the workbook and the CSV exported from its
+  `Scopus Sources` sheet so that the conversion remains auditable.
 - **Norwegian Publication Indicator:** export the selected channel snapshot from the
   Norwegian Register and place it at `external.raw.norwegian_list_csv`. Preserve the
   export date and source metadata with the file.
